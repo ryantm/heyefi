@@ -13,6 +13,7 @@ cabal-version:       >=1.10
 executable heyefi
   main-is:             Main.hs
   build-depends:       base
+                     , bytestring
                      , time
                      , iso8601-time
                      , warp

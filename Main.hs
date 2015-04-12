@@ -4,10 +4,12 @@ module Main where
 
 import HEyefi.Constant
 
+import Data.ByteString (unpack)
 import Data.Time.Clock
 import Data.Time.ISO8601
 import Network.Wai ( responseLBS
                    , Application
+                   , requestBody
                    , requestMethod
                    , requestHeaders )
 import Network.Wai.Handler.Warp (run)
@@ -28,6 +30,8 @@ main = do
 
 app :: Application
 app req f
-  | requestMethod req == "POST" =
-      logInfo (show (requestHeaders req)) >>
-      (f $ responseLBS status200 [(hContentType, "text/plain")] "Hello world!")
+  | requestMethod req == "POST" = do
+      body <- requestBody req
+      logInfo (show (requestHeaders req))
+      logInfo (show (unpack body))
+      f (responseLBS status200 [(hContentType, "text/plain")] "Hello world!")
