@@ -25,7 +25,7 @@ logInfo s = do
   putStrLn (unwords ["[" ++ formatISO8601Millis t ++ "]", "[INFO]", s])
 
 main = do
-    putStrLn $ "Listening on port " ++ show port
+    logInfo ("Listening on port " ++ show port)
     run port app
 
 app :: Application
