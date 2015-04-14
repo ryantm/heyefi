@@ -14,6 +14,7 @@ executable heyefi
   main-is:             Main.hs
   build-depends:       base
                      , bytestring
+                     , utf8-string
                      , time
                      , iso8601-time
                      , warp

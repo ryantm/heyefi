@@ -4,7 +4,7 @@ module Main where
 
 import HEyefi.Constant
 
-import Data.ByteString (unpack)
+import Data.ByteString.UTF8 (toString)
 import Data.List (find)
 import Data.Maybe (isJust, fromJust)
 import Data.Time.Clock
@@ -67,5 +67,5 @@ app req f = do
   body <- requestBody req
   logInfo (show (pathInfo req))
   logInfo (show (requestHeaders req))
-  logInfo (show (unpack body))
+  logInfo (show (toString body))
   dispatchRequest req f
