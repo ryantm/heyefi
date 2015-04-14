@@ -20,7 +20,9 @@ import Network.Wai.Handler.Warp (run)
 import Network.HTTP.Types (status200)
 import Network.HTTP.Types.Header (hContentType, Header)
 import Network.HTTP.Types.Method (Method (..))
-
+import Text.XML.Light.Input (parseXML)
+import Text.XML.Light.Proc (findChild, onlyElems, strContent)
+import Text.XML.Light.Types (QName (..))
 
 
 logInfo :: String -> IO ()
@@ -60,7 +62,19 @@ dispatchRequest req f
     isJust (soapAction req) &&
     fromJust (soapAction req) == StartSession = do
       logInfo "Got StartSession request"
+      body <- requestBody req
+      let elements = onlyElems (parseXML (toString body))
+      case (findChild (QName "macaddress" Nothing Nothing) (head elements)) of
+       Just c -> logInfo (strContent c)
+       Nothing -> logInfo "Parsed nothing"
       f (responseLBS status200 [(hContentType, "text/plain")] "Hello world!")
+
+-- let contents = parseXML source
+--     quotes   = concatMap (findElements $ simpleName "StockQuote") (onlyElems contents)
+--     symbols  = map (findAttr $ simpleName "Symbol") quotes
+--     simpleName s = QName s Nothing Nothing
+-- print symbols
+
 
 app :: Application
 app req f = do
