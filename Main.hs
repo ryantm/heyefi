@@ -20,9 +20,7 @@ import Network.Wai.Handler.Warp (run)
 import Network.HTTP.Types (status200)
 import Network.HTTP.Types.Header (hContentType, Header)
 import Network.HTTP.Types.Method (Method (..))
-import Text.XML.Light.Input (parseXML)
-import Text.XML.Light.Proc (findChild, onlyElems, strContent)
-import Text.XML.Light.Types (QName (..))
+import Text.HTML.TagSoup (parseTags, sections, (~==))
 
 
 logInfo :: String -> IO ()
@@ -33,14 +31,6 @@ logInfo s = do
 main = do
     logInfo ("Listening on port " ++ show port)
     run port app
-
-
-                -- self.send_response(200)
-                -- self.send_header('Date', self.date_time_string())
-                -- self.send_header('Pragma','no-cache')
-                -- self.send_header('Server','Eye-Fi Agent/2.0.4.0 (Windows XP SP2)')
-                -- self.send_header('Content-Type','text/xml; charset="utf-8"')
-                -- self.send_header('Content-Length', contentLength)
 
 data SoapAction = StartSession
                   deriving (Show, Eq)
@@ -63,18 +53,10 @@ dispatchRequest req f
     fromJust (soapAction req) == StartSession = do
       logInfo "Got StartSession request"
       body <- requestBody req
-      let elements = onlyElems (parseXML (toString body))
-      case (findChild (QName "macaddress" Nothing Nothing) (head elements)) of
-       Just c -> logInfo (strContent c)
-       Nothing -> logInfo "Parsed nothing"
+      let parsed = parseTags (toString body)
+      logInfo (show parsed)
+      logInfo (show (sections (~== ("<macaddress>" :: String)) parsed))
       f (responseLBS status200 [(hContentType, "text/plain")] "Hello world!")
-
--- let contents = parseXML source
---     quotes   = concatMap (findElements $ simpleName "StockQuote") (onlyElems contents)
---     symbols  = map (findAttr $ simpleName "Symbol") quotes
---     simpleName s = QName s Nothing Nothing
--- print symbols
-
 
 app :: Application
 app req f = do
