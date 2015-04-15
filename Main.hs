@@ -46,14 +46,13 @@ soapAction req =
    Just (_,sa) -> error ((show sa) ++ " is not a defined SoapAction yet")
    _ -> Nothing
 
-dispatchRequest :: Application
-dispatchRequest req f
+dispatchRequest :: String -> Application
+dispatchRequest body req f
   | requestMethod req == "POST" &&
     isJust (soapAction req) &&
     fromJust (soapAction req) == StartSession = do
       logInfo "Got StartSession request"
-      body <- requestBody req
-      let parsed = parseTags (toString body)
+      let parsed = parseTags body
       logInfo (show parsed)
       logInfo (show (sections (~== ("<macaddress>" :: String)) parsed))
       f (responseLBS status200 [(hContentType, "text/plain")] "Hello world!")
@@ -64,4 +63,4 @@ app req f = do
   logInfo (show (pathInfo req))
   logInfo (show (requestHeaders req))
   logInfo (show (toString body))
-  dispatchRequest req f
+  dispatchRequest (toString body) req f
