@@ -20,7 +20,9 @@ import Network.Wai.Handler.Warp (run)
 import Network.HTTP.Types (status200)
 import Network.HTTP.Types.Header (hContentType, Header)
 import Network.HTTP.Types.Method (Method (..))
-import Text.HTML.TagSoup (parseTags, sections, (~==))
+import Text.XML.HXT.Core (runX, readString, getText, (/>))
+import Text.HandsomeSoup (css)
+import Control.Arrow ((>>>),  (&&&))
 
 
 logInfo :: String -> IO ()
@@ -52,9 +54,11 @@ dispatchRequest body req f
     isJust (soapAction req) &&
     fromJust (soapAction req) == StartSession = do
       logInfo "Got StartSession request"
-      let parsed = parseTags body
-      logInfo (show parsed)
-      logInfo (show (sections (~== ("<macaddress>" :: String)) parsed))
+      result <- runX (
+            readString [] body >>>
+            ((css "macaddress" /> getText)
+             &&& (css "cnonce" /> getText)))
+      logInfo (show result)
       f (responseLBS status200 [(hContentType, "text/plain")] "Hello world!")
 
 app :: Application

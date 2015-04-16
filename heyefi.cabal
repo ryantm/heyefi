@@ -21,5 +21,6 @@ executable heyefi
                      , wai
                      , HTTP
                      , http-types
-                     , tagsoup
+                     , HandsomeSoup
+                     , hxt
   default-language:    Haskell2010
