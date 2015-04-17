@@ -48,17 +48,26 @@ soapAction req =
    Just (_,sa) -> error ((show sa) ++ " is not a defined SoapAction yet")
    _ -> Nothing
 
+startSessionResponse macaddress cnounce transfermode transfermodetimestamp =
+  undefined
+  where
+   credentialString = macaddress ++ cnounce ++ upload_key_0
+
 dispatchRequest :: String -> Application
 dispatchRequest body req f
   | requestMethod req == "POST" &&
     isJust (soapAction req) &&
     fromJust (soapAction req) == StartSession = do
       logInfo "Got StartSession request"
-      result <- runX (
-            readString [] body >>>
-            ((css "macaddress" /> getText)
-             &&& (css "cnonce" /> getText)))
-      logInfo (show result)
+      -- ["fileid","filename","filesize","filesignature"]
+      let xmlDocument = readString [] body
+      let getTagText = \ s -> runX (xmlDocument >>> css s /> getText)
+      macaddress <- getTagText "macaddress"
+      cnonce <- getTagText "cnonce"
+      transfermode <- getTagText "transfermode"
+      transfermodetimestamp <- getTagText "transfermodetimestamp"
+      logInfo (show macaddress)
+      logInfo (show transfermodetimestamp)
       f (responseLBS status200 [(hContentType, "text/plain")] "Hello world!")
 
 app :: Application
