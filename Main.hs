@@ -4,7 +4,7 @@ module Main where
 
 import HEyefi.Constant
 
-import Data.ByteString.UTF8 (toString)
+import Data.ByteString.UTF8 (toString, fromString)
 import Data.List (find)
 import Data.Maybe (isJust, fromJust)
 import Data.Time.Clock
@@ -23,7 +23,8 @@ import Network.HTTP.Types.Method (Method (..))
 import Text.XML.HXT.Core (runX, readString, getText, (/>))
 import Text.HandsomeSoup (css)
 import Control.Arrow ((>>>),  (&&&))
-
+import Data.Hex
+import Data.Hash.MD5 (md5s, Str (..))
 
 logInfo :: String -> IO ()
 logInfo s = do
@@ -48,10 +49,16 @@ soapAction req =
    Just (_,sa) -> error ((show sa) ++ " is not a defined SoapAction yet")
    _ -> Nothing
 
-startSessionResponse macaddress cnounce transfermode transfermodetimestamp =
-  undefined
+startSessionResponse :: Monad m =>
+                        String -> String -> String -> String -> m String
+startSessionResponse macaddress cnonce transfermode transfermodetimestamp = do
+  bcs <- binaryCredentialString
+  return (credential bcs)
   where
-   credentialString = macaddress ++ cnounce ++ upload_key_0
+    credential bcs = md5s (Str (bcs))
+    binaryCredentialString = unhex credentialString
+    credentialString :: String
+    credentialString = macaddress ++ cnonce ++ upload_key_0
 
 dispatchRequest :: String -> Application
 dispatchRequest body req f
@@ -68,6 +75,12 @@ dispatchRequest body req f
       transfermodetimestamp <- getTagText "transfermodetimestamp"
       logInfo (show macaddress)
       logInfo (show transfermodetimestamp)
+      response <- (startSessionResponse
+                     (head macaddress)
+                     (head cnonce)
+                     (head transfermode)
+                     (head transfermodetimestamp))
+      logInfo (show response)
       f (responseLBS status200 [(hContentType, "text/plain")] "Hello world!")
 
 app :: Application

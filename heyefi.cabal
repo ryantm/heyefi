@@ -24,4 +24,5 @@ executable heyefi
                      , http-types
                      , HandsomeSoup
                      , hxt
+                     , hex
   default-language:    Haskell2010
