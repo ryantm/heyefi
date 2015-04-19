@@ -20,7 +20,7 @@ import Network.Wai.Handler.Warp (run)
 import Network.HTTP.Types (status200)
 import Network.HTTP.Types.Header (hContentType, Header)
 import Network.HTTP.Types.Method (Method (..))
-import Text.XML.HXT.Core (runX, readString, getText, (/>))
+import Text.XML.HXT.Core (runX, readString, getText, (/>), mkelem, sattr, txt, yes, withIndent, root, writeDocumentToString)
 import Text.HandsomeSoup (css)
 import Control.Arrow ((>>>),  (&&&))
 import Data.Hex
@@ -49,11 +49,25 @@ soapAction req =
    Just (_,sa) -> error ((show sa) ++ " is not a defined SoapAction yet")
    _ -> Nothing
 
-startSessionResponse :: Monad m =>
-                        String -> String -> String -> String -> m String
+startSessionResponse :: String -> String -> String -> String -> IO String
 startSessionResponse macaddress cnonce transfermode transfermodetimestamp = do
   bcs <- binaryCredentialString
-  return (credential bcs)
+  let document =
+        mkelem "SOAP-ENV:Envelope"
+        [ sattr "xmlns:SOAP-ENV" "http://schemas.xmlsoap.org/soap/envelope/" ]
+        [ mkelem "SOAP-ENV:Body" []
+          [ mkelem "StartSessionResponse"
+            [ sattr "xmlns" "http://localhost/api/soap/eyefilm" ]
+            [ mkelem "credential" [] [ txt bcs ]
+            , mkelem "snonce" [] [ txt "340282366920938463463374607431768211456" ]
+            , mkelem "transfermode" [] [ txt transfermode ]
+            , mkelem "transfermodetimestamp" [] [ txt transfermodetimestamp ]
+            , mkelem "upsyncallowed" [] [ txt "true" ]
+            ]
+          ]
+        ]
+  result <- (runX (root [] [document] >>> writeDocumentToString []))
+  return (head result)
   where
     credential bcs = md5s (Str (bcs))
     binaryCredentialString = unhex credentialString
