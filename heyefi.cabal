@@ -25,4 +25,6 @@ executable heyefi
                      , HandsomeSoup
                      , hxt
                      , hex
+                     , case-insensitive
+                     , old-locale
   default-language:    Haskell2010
