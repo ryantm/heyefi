@@ -3,9 +3,9 @@
 module Main where
 
 import HEyefi.Constant
+import HEyefi.StartSession (startSessionResponse)
 
 import Data.ByteString.Lazy (fromStrict)
-import Data.ByteString.UTF8 (toString, fromString)
 import Data.ByteString.UTF8 (toString, fromString)
 import Data.List (find)
 import Data.Maybe (isJust, fromJust)
@@ -27,13 +27,13 @@ import Network.HTTP.Types.Header (hContentType,
                                   hContentLength,
                                   hDate,
                                   Header)
-import Network.HTTP.Types.Method (Method (..))
-import Text.XML.HXT.Core (runX, readString, getText, (/>), mkelem, sattr, txt, yes, withIndent, root, writeDocumentToString)
+--import Network.HTTP.Types.Method (Method (..))
+import Text.XML.HXT.Core ( runX
+                         , readString
+                         , getText
+                         , (/>))
 import Text.HandsomeSoup (css)
-import Control.Arrow ((>>>),  (&&&))
-import Data.Hex
-import Data.Hash.MD5 (md5s, Str (..))
-import           Data.CaseInsensitive  ( CI )
+import Control.Arrow ((>>>))
 import qualified Data.CaseInsensitive as CI
 
 
@@ -42,6 +42,7 @@ logInfo s = do
   t <- getCurrentTime
   putStrLn (unwords ["[" ++ formatISO8601Millis t ++ "]", "[INFO]", s])
 
+main :: IO ()
 main = do
     logInfo ("Listening on port " ++ show port)
     run port app
@@ -60,30 +61,6 @@ soapAction req =
    Just (_,sa) -> error ((show sa) ++ " is not a defined SoapAction yet")
    _ -> Nothing
 
-startSessionResponse :: String -> String -> String -> String -> IO String
-startSessionResponse macaddress cnonce transfermode transfermodetimestamp = do
-  bcs <- binaryCredentialString
-  let document =
-        mkelem "SOAP-ENV:Envelope"
-        [ sattr "xmlns:SOAP-ENV" "http://schemas.xmlsoap.org/soap/envelope/" ]
-        [ mkelem "SOAP-ENV:Body" []
-          [ mkelem "StartSessionResponse"
-            [ sattr "xmlns" "http://localhost/api/soap/eyefilm" ]
-            [ mkelem "credential" [] [ txt bcs ]
-            , mkelem "snonce" [] [ txt "340282366920938463463374607431768211456" ]
-            , mkelem "transfermode" [] [ txt transfermode ]
-            , mkelem "transfermodetimestamp" [] [ txt transfermodetimestamp ]
-            , mkelem "upsyncallowed" [] [ txt "true" ]
-            ]
-          ]
-        ]
-  result <- (runX (root [] [document] >>> writeDocumentToString []))
-  return (head result)
-  where
-    credential bcs = md5s (Str (bcs))
-    binaryCredentialString = unhex credentialString
-    credentialString :: String
-    credentialString = macaddress ++ cnonce ++ upload_key_0
 
 dispatchRequest :: String -> Application
 dispatchRequest body req f
@@ -114,6 +91,7 @@ dispatchRequest body req f
          , (CI.mk "Pragma", "no-cache")
          , (hServer, "Eye-Fi Agent/2.0.4.0 (Windows XP SP2)")
          , (hContentLength, fromString (show (length responseBody)))] (fromStrict (fromString responseBody)))
+dispatchRequest  _ _ _ = error "did not match dispatch"
 
 app :: Application
 app req f = do
