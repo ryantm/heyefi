@@ -4,6 +4,7 @@ module Main where
 
 import HEyefi.Constant
 import HEyefi.StartSession (startSessionResponse)
+import HEyefi.GetPhotoStatus (getPhotoStatusResponse)
 
 import Data.ByteString.Lazy (fromStrict)
 import Data.ByteString.UTF8 (toString, fromString)
@@ -67,7 +68,6 @@ soapAction req =
 handleSoapAction :: SoapAction -> String -> Application
 handleSoapAction StartSession body _ f = do
       logInfo "Got StartSession request"
-      -- ["fileid","filename","filesize","filesignature"]
       let xmlDocument = readString [] body
       let getTagText = \ s -> runX (xmlDocument >>> css s /> getText)
       macaddress <- getTagText "macaddress"
@@ -90,8 +90,17 @@ handleSoapAction StartSession body _ f = do
          , (CI.mk "Pragma", "no-cache")
          , (hServer, "Eye-Fi Agent/2.0.4.0 (Windows XP SP2)")
          , (hContentLength, fromString (show (length responseBody)))] (fromStrict (fromString responseBody)))
-handleSoapAction sa _ _ _ =
-  error ("SoapAction " ++ show sa ++ " does not have a handler.")
+handleSoapAction GetPhotoStatus _ _ f = do
+      logInfo "Got GetPhotoStatus request"
+      responseBody <- getPhotoStatusResponse
+      t <- getCurrentTime
+      f (responseLBS
+         status200
+         [ (hContentType, "text/xml; charset=\"utf-8\"")
+         , (hDate, fromString (formatTime defaultTimeLocale rfc822DateFormat t))
+         , (CI.mk "Pragma", "no-cache")
+         , (hServer, "Eye-Fi Agent/2.0.4.0 (Windows XP SP2)")
+         , (hContentLength, fromString (show (length responseBody)))] (fromStrict (fromString responseBody)))
 
 dispatchRequest :: String -> Application
 dispatchRequest body req f
