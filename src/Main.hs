@@ -48,7 +48,8 @@ main = do
     run port app
 
 data SoapAction = StartSession
-                  deriving (Show, Eq)
+                | GetPhotoStatus
+                deriving (Show, Eq)
 
 headerIsSoapAction :: Header -> Bool
 headerIsSoapAction ("SOAPAction",_) = True
@@ -58,15 +59,13 @@ soapAction :: Request -> Maybe SoapAction
 soapAction req =
   case find headerIsSoapAction (requestHeaders req) of
    Just (_,"\"urn:StartSession\"") -> Just StartSession
+   Just (_,"\"urn:GetPhotoStatus\"") -> Just GetPhotoStatus
    Just (_,sa) -> error ((show sa) ++ " is not a defined SoapAction yet")
    _ -> Nothing
 
 
-dispatchRequest :: String -> Application
-dispatchRequest body req f
-  | requestMethod req == "POST" &&
-    isJust (soapAction req) &&
-    fromJust (soapAction req) == StartSession = do
+handleSoapAction :: SoapAction -> String -> Application
+handleSoapAction StartSession body _ f = do
       logInfo "Got StartSession request"
       -- ["fileid","filename","filesize","filesignature"]
       let xmlDocument = readString [] body
@@ -91,6 +90,15 @@ dispatchRequest body req f
          , (CI.mk "Pragma", "no-cache")
          , (hServer, "Eye-Fi Agent/2.0.4.0 (Windows XP SP2)")
          , (hContentLength, fromString (show (length responseBody)))] (fromStrict (fromString responseBody)))
+handleSoapAction sa _ _ _ =
+  error ("SoapAction " ++ show sa ++ " does not have a handler.")
+
+dispatchRequest :: String -> Application
+dispatchRequest body req f
+  | requestMethod req == "POST" &&
+    isJust (soapAction req) =
+      handleSoapAction (fromJust (soapAction req)) body req f
+
 dispatchRequest  _ _ _ = error "did not match dispatch"
 
 app :: Application
