@@ -6,6 +6,7 @@ import HEyefi.Constant
 import HEyefi.StartSession (startSessionResponse)
 import HEyefi.GetPhotoStatus (getPhotoStatusResponse)
 
+import qualified Data.ByteString as B
 import Data.ByteString.Lazy (fromStrict)
 import Data.ByteString.UTF8 (toString, fromString)
 import Data.List (find)
@@ -45,8 +46,8 @@ logInfo s = do
 
 main :: IO ()
 main = do
-    logInfo ("Listening on port " ++ show port)
-    run port app
+  logInfo ("Listening on port " ++ show port)
+  run port app
 
 data SoapAction = StartSession
                 | GetPhotoStatus
@@ -117,9 +118,18 @@ dispatchRequest body req f
       handleSoapAction (fromJust (soapAction req)) body req f
 dispatchRequest  _ _ _ = error "did not match dispatch"
 
+getWholeRequestBody :: Request -> IO B.ByteString
+getWholeRequestBody request = do
+  r <- requestBody request
+  if r == B.empty
+    then return B.empty
+    else do
+     rest <- getWholeRequestBody request
+     return (B.append r rest)
+
 app :: Application
 app req f = do
-  body <- requestBody req
+  body <- getWholeRequestBody req
   logInfo (show (pathInfo req))
   logInfo (show (requestHeaders req))
   logInfo (show (toString body))
