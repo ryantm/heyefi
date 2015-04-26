@@ -9,7 +9,7 @@ import HEyefi.GetPhotoStatus (getPhotoStatusResponse)
 import Data.ByteString.Lazy (fromStrict)
 import Data.ByteString.UTF8 (toString, fromString)
 import Data.List (find)
-import Data.Maybe (isJust, fromJust)
+import Data.Maybe (isJust, fromJust, isNothing)
 import Data.Time.Clock
 import Data.Time.Format (formatTime)
 import Data.Time.ISO8601
@@ -67,47 +67,54 @@ soapAction req =
 
 handleSoapAction :: SoapAction -> String -> Application
 handleSoapAction StartSession body _ f = do
-      logInfo "Got StartSession request"
-      let xmlDocument = readString [] body
-      let getTagText = \ s -> runX (xmlDocument >>> css s /> getText)
-      macaddress <- getTagText "macaddress"
-      cnonce <- getTagText "cnonce"
-      transfermode <- getTagText "transfermode"
-      transfermodetimestamp <- getTagText "transfermodetimestamp"
-      logInfo (show macaddress)
-      logInfo (show transfermodetimestamp)
-      responseBody <- (startSessionResponse
-                       (head macaddress)
-                       (head cnonce)
-                       (head transfermode)
-                       (head transfermodetimestamp))
-      logInfo (show responseBody)
-      t <- getCurrentTime
-      f (responseLBS
-         status200
-         [ (hContentType, "text/xml; charset=\"utf-8\"")
-         , (hDate, fromString (formatTime defaultTimeLocale rfc822DateFormat t))
-         , (CI.mk "Pragma", "no-cache")
-         , (hServer, "Eye-Fi Agent/2.0.4.0 (Windows XP SP2)")
-         , (hContentLength, fromString (show (length responseBody)))] (fromStrict (fromString responseBody)))
+  logInfo "Got StartSession request"
+  let xmlDocument = readString [] body
+  let getTagText = \ s -> runX (xmlDocument >>> css s /> getText)
+  macaddress <- getTagText "macaddress"
+  cnonce <- getTagText "cnonce"
+  transfermode <- getTagText "transfermode"
+  transfermodetimestamp <- getTagText "transfermodetimestamp"
+  logInfo (show macaddress)
+  logInfo (show transfermodetimestamp)
+  responseBody <- (startSessionResponse
+                   (head macaddress)
+                   (head cnonce)
+                   (head transfermode)
+                   (head transfermodetimestamp))
+  logInfo (show responseBody)
+  t <- getCurrentTime
+  f (responseLBS
+     status200
+     [ (hContentType, "text/xml; charset=\"utf-8\"")
+     , (hDate, fromString (formatTime defaultTimeLocale rfc822DateFormat t))
+     , (CI.mk "Pragma", "no-cache")
+     , (hServer, "Eye-Fi Agent/2.0.4.0 (Windows XP SP2)")
+     , (hContentLength, fromString (show (length responseBody)))] (fromStrict (fromString responseBody)))
 handleSoapAction GetPhotoStatus _ _ f = do
-      logInfo "Got GetPhotoStatus request"
-      responseBody <- getPhotoStatusResponse
-      t <- getCurrentTime
-      f (responseLBS
-         status200
-         [ (hContentType, "text/xml; charset=\"utf-8\"")
-         , (hDate, fromString (formatTime defaultTimeLocale rfc822DateFormat t))
-         , (CI.mk "Pragma", "no-cache")
-         , (hServer, "Eye-Fi Agent/2.0.4.0 (Windows XP SP2)")
-         , (hContentLength, fromString (show (length responseBody)))] (fromStrict (fromString responseBody)))
+  logInfo "Got GetPhotoStatus request"
+  responseBody <- getPhotoStatusResponse
+  t <- getCurrentTime
+  f (responseLBS
+     status200
+     [ (hContentType, "text/xml; charset=\"utf-8\"")
+     , (hDate, fromString (formatTime defaultTimeLocale rfc822DateFormat t))
+     , (CI.mk "Pragma", "no-cache")
+     , (hServer, "Eye-Fi Agent/2.0.4.0 (Windows XP SP2)")
+     , (hContentLength, fromString (show (length responseBody)))] (fromStrict (fromString responseBody)))
+
+handleUpload :: String -> Application
+handleUpload _ _ _ = error "handleUpload"
 
 dispatchRequest :: String -> Application
 dispatchRequest body req f
   | requestMethod req == "POST" &&
+    pathInfo req == ["api","soap","eyefilm","v1","upload"] &&
+    isNothing (soapAction req) =
+      handleUpload body req f
+dispatchRequest body req f
+  | requestMethod req == "POST" &&
     isJust (soapAction req) =
       handleSoapAction (fromJust (soapAction req)) body req f
-
 dispatchRequest  _ _ _ = error "did not match dispatch"
 
 app :: Application
