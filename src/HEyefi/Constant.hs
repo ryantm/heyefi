@@ -25,3 +25,7 @@ geotag_lag :: Int
 geotag_lag = 3600
 geotag_accuracy :: Int
 geotag_accuracy = 140000
+
+multipartBodyBoundary :: String
+multipartBodyBoundary =
+  "---------------------------02468ace13579bdfcafebabef00d"

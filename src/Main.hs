@@ -7,8 +7,10 @@ import HEyefi.StartSession (startSessionResponse)
 import HEyefi.GetPhotoStatus (getPhotoStatusResponse)
 
 import qualified Data.ByteString as B
+import qualified Data.ByteString.Lazy as BL
 import Data.ByteString.Lazy (fromStrict)
-import Data.ByteString.UTF8 (toString, fromString)
+import Data.ByteString.Lazy.UTF8 (toString)
+import Data.ByteString.UTF8 (fromString)
 import Data.List (find)
 import Data.Maybe (isJust, fromJust, isNothing)
 import Data.Time.Clock
@@ -22,6 +24,7 @@ import Network.Wai ( responseLBS
                    , requestBody
                    , requestMethod
                    , requestHeaders )
+import Network.Multipart ( parseMultipartBody, MultiPart (..), BodyPart (..) )
 import Network.Wai.Handler.Warp (run)
 import Network.HTTP.Types (status200)
 import Network.HTTP.Types.Header (hContentType,
@@ -66,10 +69,10 @@ soapAction req =
    _ -> Nothing
 
 
-handleSoapAction :: SoapAction -> String -> Application
+handleSoapAction :: SoapAction -> BL.ByteString -> Application
 handleSoapAction StartSession body _ f = do
   logInfo "Got StartSession request"
-  let xmlDocument = readString [] body
+  let xmlDocument = readString [] (toString body)
   let getTagText = \ s -> runX (xmlDocument >>> css s /> getText)
   macaddress <- getTagText "macaddress"
   cnonce <- getTagText "cnonce"
@@ -103,10 +106,23 @@ handleSoapAction GetPhotoStatus _ _ f = do
      , (hServer, "Eye-Fi Agent/2.0.4.0 (Windows XP SP2)")
      , (hContentLength, fromString (show (length responseBody)))] (fromStrict (fromString responseBody)))
 
-handleUpload :: String -> Application
-handleUpload _ _ _ = error "handleUpload"
 
-dispatchRequest :: String -> Application
+
+handleUpload :: BL.ByteString -> Application
+handleUpload body _ _ = do
+  let MultiPart bodyParts = parseMultipartBody multipartBodyBoundary body
+  logInfo (show (length bodyParts))
+  lBP bodyParts
+  undefined
+  where
+    lBP [] = return ()
+    lBP ((BodyPart headers _):xs) = do
+      logInfo (show headers)
+      lBP xs
+      return ()
+
+
+dispatchRequest :: BL.ByteString -> Application
 dispatchRequest body req f
   | requestMethod req == "POST" &&
     pathInfo req == ["api","soap","eyefilm","v1","upload"] &&
@@ -132,5 +148,5 @@ app req f = do
   body <- getWholeRequestBody req
   logInfo (show (pathInfo req))
   logInfo (show (requestHeaders req))
-  logInfo (show (toString body))
-  dispatchRequest (toString body) req f
+  -- logInfo (show (toString body))
+  dispatchRequest (fromStrict body) req f
