@@ -113,6 +113,12 @@ handleUpload body _ _ = do
   let MultiPart bodyParts = parseMultipartBody multipartBodyBoundary body
   logInfo (show (length bodyParts))
   lBP bodyParts
+  let (BodyPart _ soapEnvelope) = bodyParts !! 0
+  let (BodyPart _ file) = bodyParts !! 1
+  let (BodyPart _ digest) = bodyParts !! 2
+  BL.writeFile "/home/ryantm/p/heyefi/tmp.tar" file
+  logInfo (show soapEnvelope)
+  logInfo (show digest)
   undefined
   where
     lBP [] = return ()
