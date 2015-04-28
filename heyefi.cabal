@@ -31,6 +31,7 @@ executable heyefi
                      , case-insensitive
                      , old-locale
                      , multipart
+                     , tar
 
 test-suite test-heyefi
   default-language: Haskell2010
@@ -56,3 +57,4 @@ test-suite test-heyefi
                   , case-insensitive
                   , old-locale
                   , multipart
+                  , tar

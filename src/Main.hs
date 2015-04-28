@@ -40,6 +40,8 @@ import Text.XML.HXT.Core ( runX
 import Text.HandsomeSoup (css)
 import Control.Arrow ((>>>))
 import qualified Data.CaseInsensitive as CI
+import Codec.Archive.Tar (extract)
+
 
 
 logInfo :: String -> IO ()
@@ -117,6 +119,7 @@ handleUpload body _ _ = do
   let (BodyPart _ file) = bodyParts !! 1
   let (BodyPart _ digest) = bodyParts !! 2
   BL.writeFile "/home/ryantm/p/heyefi/tmp.tar" file
+  extract "/home/ryantm/p/heyefi/" "/home/ryantm/p/heyefi/tmp.tar"
   logInfo (show soapEnvelope)
   logInfo (show digest)
   undefined
