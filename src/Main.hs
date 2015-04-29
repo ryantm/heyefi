@@ -5,6 +5,7 @@ module Main where
 import HEyefi.Constant
 import HEyefi.StartSession (startSessionResponse)
 import HEyefi.GetPhotoStatus (getPhotoStatusResponse)
+import HEyefi.UploadPhoto (uploadPhotoResponse)
 
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
@@ -111,18 +112,27 @@ handleSoapAction GetPhotoStatus _ _ f = do
 
 
 handleUpload :: BL.ByteString -> Application
-handleUpload body _ _ = do
+handleUpload body _ f = do
   let MultiPart bodyParts = parseMultipartBody multipartBodyBoundary body
   logInfo (show (length bodyParts))
   lBP bodyParts
   let (BodyPart _ soapEnvelope) = bodyParts !! 0
   let (BodyPart _ file) = bodyParts !! 1
   let (BodyPart _ digest) = bodyParts !! 2
-  BL.writeFile "/home/ryantm/p/heyefi/tmp.tar" file
-  extract "/home/ryantm/p/heyefi/" "/home/ryantm/p/heyefi/tmp.tar"
+  BL.writeFile "/home/ryantm/p/heyefi/photos/tmp.tar" file
+  extract "/home/ryantm/p/heyefi/photos/" "/home/ryantm/p/heyefi/photos/tmp.tar"
   logInfo (show soapEnvelope)
   logInfo (show digest)
-  undefined
+  responseBody <- uploadPhotoResponse
+  logInfo (show responseBody)
+  t <- getCurrentTime
+  f (responseLBS
+     status200
+     [ (hContentType, "text/xml; charset=\"utf-8\"")
+     , (hDate, fromString (formatTime defaultTimeLocale rfc822DateFormat t))
+     , (CI.mk "Pragma", "no-cache")
+     , (hServer, "Eye-Fi Agent/2.0.4.0 (Windows XP SP2)")
+     , (hContentLength, fromString (show (length responseBody)))] (fromStrict (fromString responseBody)))
   where
     lBP [] = return ()
     lBP ((BodyPart headers _):xs) = do
