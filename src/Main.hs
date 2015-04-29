@@ -6,6 +6,7 @@ import HEyefi.Constant
 import HEyefi.StartSession (startSessionResponse)
 import HEyefi.GetPhotoStatus (getPhotoStatusResponse)
 import HEyefi.UploadPhoto (uploadPhotoResponse)
+import HEyefi.MarkLastPhotoInRoll (markLastPhotoInRollResponse)
 
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
@@ -57,6 +58,7 @@ main = do
 
 data SoapAction = StartSession
                 | GetPhotoStatus
+                | MarkLastPhotoInRoll
                 deriving (Show, Eq)
 
 headerIsSoapAction :: Header -> Bool
@@ -68,6 +70,7 @@ soapAction req =
   case find headerIsSoapAction (requestHeaders req) of
    Just (_,"\"urn:StartSession\"") -> Just StartSession
    Just (_,"\"urn:GetPhotoStatus\"") -> Just GetPhotoStatus
+   Just (_,"\"urn:MarkLastPhotoInRoll\"") -> Just MarkLastPhotoInRoll
    Just (_,sa) -> error ((show sa) ++ " is not a defined SoapAction yet")
    _ -> Nothing
 
@@ -108,6 +111,18 @@ handleSoapAction GetPhotoStatus _ _ f = do
      , (CI.mk "Pragma", "no-cache")
      , (hServer, "Eye-Fi Agent/2.0.4.0 (Windows XP SP2)")
      , (hContentLength, fromString (show (length responseBody)))] (fromStrict (fromString responseBody)))
+handleSoapAction MarkLastPhotoInRoll _ _ f = do
+  logInfo "Got MarkLastPhotoInRoll request"
+  responseBody <- markLastPhotoInRollResponse
+  t <- getCurrentTime
+  f (responseLBS
+     status200
+     [ (hContentType, "text/xml; charset=\"utf-8\"")
+     , (hDate, fromString (formatTime defaultTimeLocale rfc822DateFormat t))
+     , (CI.mk "Pragma", "no-cache")
+     , (hServer, "Eye-Fi Agent/2.0.4.0 (Windows XP SP2)")
+     , (hContentLength, fromString (show (length responseBody)))] (fromStrict (fromString responseBody)))
+
 
 
 

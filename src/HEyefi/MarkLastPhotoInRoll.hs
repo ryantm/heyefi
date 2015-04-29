@@ -1,29 +1,27 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module HEyefi.UploadPhoto where
+module HEyefi.MarkLastPhotoInRoll where
 
 import Text.XML.HXT.Core ( runX
                          , mkelem
                          , spi
                          , t_xml
                          , sattr
-                         , txt
                          , root
                          , writeDocumentToString)
 import Control.Arrow ((>>>))
 
-uploadPhotoResponse :: IO String
-uploadPhotoResponse = do
+markLastPhotoInRollResponse :: IO String
+markLastPhotoInRollResponse = do
   let document =
-        root [ ]
+        root []
         [ spi t_xml "version=\"1.0\" encoding=\"UTF-8\""
         , mkelem "SOAP-ENV:Envelope"
           [ sattr "xmlns:SOAP-ENV" "http://schemas.xmlsoap.org/soap/envelope/" ]
           [ mkelem "SOAP-ENV:Body" []
-            [ mkelem "UploadPhotoResponse"
+            [ mkelem "MarkLastPhotoInRollResponse"
               [ sattr "xmlns" "http://localhost/api/soap/eyefilm" ]
-              [ mkelem "success" [] [ txt "true" ]
-              ]
+              []
             ]
           ]
         ]
