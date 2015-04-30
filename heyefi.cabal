@@ -27,7 +27,6 @@ executable heyefi
                      , http-types
                      , HandsomeSoup
                      , hxt
-                     , hex
                      , case-insensitive
                      , old-locale
                      , multipart
@@ -53,7 +52,6 @@ test-suite test-heyefi
                   , http-types
                   , HandsomeSoup
                   , hxt
-                  , hex
                   , case-insensitive
                   , old-locale
                   , multipart
