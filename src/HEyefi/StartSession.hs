@@ -3,7 +3,7 @@
 module HEyefi.StartSession where
 
 import HEyefi.Constant (upload_key_0)
-import Heyefi.Hex (unhex)
+import HEyefi.Hex (unhex)
 
 import Text.XML.HXT.Core ( runX
                          , mkelem

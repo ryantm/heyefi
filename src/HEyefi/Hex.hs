@@ -1,11 +1,13 @@
 module HEyefi.Hex where
 
 unhex :: String -> Maybe String
-unhex [] = Just []
-unhex (a:b:xs) = do f <- c a
-                    s <- c b
-                    return (toEnum ((f * 16) + s) :) (unhex xs)
-unhex [_] = Nothing
+unhex _ = undefined
+-- unhex [] = Just []
+-- unhex (a:b:xs) = toEnum ((f * 16) + s :) unhex xs
+--   where
+--     f = c a
+--     s = c b
+-- unhex [_] = Nothing
 
 
 c :: Char -> Maybe Int
