@@ -16,6 +16,8 @@ executable heyefi
   main-is:             Main.hs
   ghc-options:         -Wall -Werror
   build-depends:       base
+                     , stm
+                     , unix
                      , MissingH
                      , bytestring
                      , utf8-string
@@ -39,6 +41,8 @@ test-suite test-heyefi
   main-is:          Spec.hs
   ghc-options:      -Wall -Werror
   build-depends:    base
+                  , stm
+                  , unix
                   , containers
                   , hspec
                   , MissingH

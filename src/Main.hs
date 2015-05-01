@@ -3,6 +3,7 @@
 module Main where
 
 import HEyefi.Constant
+import HEyefi.Config (monitorConfig)
 import HEyefi.StartSession (startSessionResponse)
 import HEyefi.GetPhotoStatus (getPhotoStatusResponse)
 import HEyefi.UploadPhoto (uploadPhotoResponse)
@@ -44,15 +45,26 @@ import Control.Arrow ((>>>))
 import qualified Data.CaseInsensitive as CI
 import Codec.Archive.Tar (extract)
 
-
+import Control.Monad (forever)
+import Control.Concurrent (forkIO)
+import Control.Concurrent.STM (newTVar, atomically, writeTVar, TVar)
+import System.Posix.Signals (installHandler, sigHUP, Handler( Catch ))
 
 logInfo :: String -> IO ()
 logInfo s = do
   t <- getCurrentTime
   putStrLn (unwords ["[" ++ formatISO8601Millis t ++ "]", "[INFO]", s])
 
+handleHup :: TVar (Maybe Int) -> IO ()
+handleHup wakeSig = atomically (writeTVar wakeSig (Just 1))
+
 main :: IO ()
 main = do
+  wakeSig <- atomically (newTVar Nothing)
+  _ <- installHandler sigHUP (Catch $ handleHup wakeSig) Nothing
+  let configPath = "/home/ryantm/p/heyefi/heyefi.confg"
+  _ <- forkIO (forever (monitorConfig configPath wakeSig))
+
   logInfo ("Listening on port " ++ show port)
   run port app
 
