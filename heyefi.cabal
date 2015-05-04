@@ -33,6 +33,9 @@ executable heyefi
                      , old-locale
                      , multipart
                      , tar
+                     , configurator
+                     , unordered-containers
+                     , text
 
 test-suite test-heyefi
   default-language: Haskell2010
@@ -60,3 +63,6 @@ test-suite test-heyefi
                   , old-locale
                   , multipart
                   , tar
+                  , configurator
+                  , unordered-containers
+                  , text

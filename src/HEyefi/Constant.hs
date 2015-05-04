@@ -3,6 +3,9 @@ module HEyefi.Constant where
 port :: Int
 port = 59278
 
+configPath :: String
+configPath = "/home/ryantm/p/heyefi/heyefi.config"
+
 mac_0 :: String
 mac_0 = "0018562de4ce"
 
@@ -10,6 +13,7 @@ upload_key_0 :: String
 upload_key_0 = "36d61e4e7403a0586702c9159892a062"
 upload_dir :: String
 upload_dir = "/data/annex/doxie/unsorted"
+
 upload_uid :: Int
 upload_uid = 1000
 upload_gid :: Int

@@ -62,7 +62,6 @@ main :: IO ()
 main = do
   wakeSig <- atomically (newTVar Nothing)
   _ <- installHandler sigHUP (Catch $ handleHup wakeSig) Nothing
-  let configPath = "/home/ryantm/p/heyefi/heyefi.confg"
   _ <- forkIO (forever (monitorConfig configPath wakeSig))
 
   logInfo ("Listening on port " ++ show port)
