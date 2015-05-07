@@ -28,7 +28,7 @@ waitForWake wakeSig = atomically (
       Nothing -> retry)
 
 -- Example config:
--- cards = [["0012342de4ce","e7403a0123402c9159892a062"],["1234562d5678","12345e4e7403a0586702c9123452a062"]]
+-- cards = [["0012342de4ce","e7403a0123402ca062"],["1234562d5678","12342a062"]]
 -- upload_dir = "/data/annex/doxie/unsorted"
 monitorConfig :: FilePath -> TVar (Maybe Int) -> IO ()
 monitorConfig configPath wakeSignal = do
