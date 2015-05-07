@@ -2,6 +2,8 @@
 
 module HEyefi.Config where
 
+import HEyefi.Log (logInfo)
+
 import Control.Concurrent.STM (TVar, readTVar, writeTVar, atomically, retry)
 import Data.HashMap.Strict ()
 import qualified Data.HashMap.Strict as HM
@@ -37,5 +39,12 @@ monitorConfig configPath wakeSignal = do
   display config
   configMap <- getMap config -- C.lookup config "cards" :: IO (Maybe [Text])
   let cards = HM.lookup "cards" configMap
-  putStrLn (show cards)
-  waitForWake wakeSignal
+  case cards of
+   Nothing -> do
+     logInfo ("Configuration file at " ++
+       configPath ++
+       " is missing a definition for `cards`.")
+     waitForWake wakeSignal
+   Just l -> do
+     putStrLn (show l)
+     waitForWake wakeSignal

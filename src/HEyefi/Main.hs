@@ -3,6 +3,7 @@
 module Main where
 
 import HEyefi.Constant
+import HEyefi.Log (logInfo)
 import HEyefi.Config (monitorConfig)
 import HEyefi.StartSession (startSessionResponse)
 import HEyefi.GetPhotoStatus (getPhotoStatusResponse)
@@ -18,7 +19,6 @@ import Data.List (find)
 import Data.Maybe (isJust, fromJust, isNothing)
 import Data.Time.Clock
 import Data.Time.Format (formatTime)
-import Data.Time.ISO8601
 import System.Locale (rfc822DateFormat, defaultTimeLocale)
 import Network.Wai ( responseLBS
                    , Application
@@ -49,11 +49,6 @@ import Control.Monad (forever)
 import Control.Concurrent (forkIO)
 import Control.Concurrent.STM (newTVar, atomically, writeTVar, TVar)
 import System.Posix.Signals (installHandler, sigHUP, Handler( Catch ))
-
-logInfo :: String -> IO ()
-logInfo s = do
-  t <- getCurrentTime
-  putStrLn (unwords ["[" ++ formatISO8601Millis t ++ "]", "[INFO]", s])
 
 handleHup :: TVar (Maybe Int) -> IO ()
 handleHup wakeSig = atomically (writeTVar wakeSig (Just 1))
