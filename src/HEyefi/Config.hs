@@ -5,6 +5,7 @@ module HEyefi.Config where
 import HEyefi.Log (logInfo)
 
 import Control.Concurrent.STM (TVar, readTVar, writeTVar, atomically, retry)
+import Control.Exception.Base (finally)
 import Data.HashMap.Strict ()
 import qualified Data.HashMap.Strict as HM
 
@@ -29,12 +30,9 @@ waitForWake wakeSig = atomically (
       Just _ -> writeTVar wakeSig Nothing
       Nothing -> retry)
 
--- Example config:
--- cards = [["0012342de4ce","e7403a0123402ca062"],["1234562d5678","12342a062"]]
--- upload_dir = "/data/annex/doxie/unsorted"
-monitorConfig :: FilePath -> TVar (Maybe Int) -> IO ()
-monitorConfig configPath wakeSignal = do
-  putStrLn "loading"
+reloadConfig :: FilePath -> IO ()
+reloadConfig configPath = do
+  putStrLn ("Loading configuration at " ++ configPath)
   config <- load [Required configPath]
   display config
   configMap <- getMap config -- C.lookup config "cards" :: IO (Maybe [Text])
@@ -44,7 +42,14 @@ monitorConfig configPath wakeSignal = do
      logInfo ("Configuration file at " ++
        configPath ++
        " is missing a definition for `cards`.")
-     waitForWake wakeSignal
    Just l -> do
      putStrLn (show l)
-     waitForWake wakeSignal
+
+-- Example config:
+-- cards = [["0012342de4ce","e7403a0123402ca062"],["1234562d5678","12342a062"]]
+-- upload_dir = "/data/annex/doxie/unsorted"
+monitorConfig :: FilePath -> TVar (Maybe Int) -> IO ()
+monitorConfig configPath wakeSignal =
+  finally
+    (reloadConfig configPath)
+    (waitForWake wakeSignal)
