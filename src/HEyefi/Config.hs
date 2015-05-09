@@ -5,7 +5,8 @@ module HEyefi.Config where
 import HEyefi.Log (logInfo)
 
 import Control.Concurrent.STM (TVar, readTVar, writeTVar, atomically, retry)
-import Control.Exception.Base (finally)
+import Control.Exception.Base (finally, catch)
+import Control.Exception (SomeException (..))
 import Data.HashMap.Strict ()
 import qualified Data.HashMap.Strict as HM
 
@@ -32,18 +33,24 @@ waitForWake wakeSig = atomically (
 
 reloadConfig :: FilePath -> IO ()
 reloadConfig configPath = do
-  putStrLn ("Loading configuration at " ++ configPath)
-  config <- load [Required configPath]
-  display config
-  configMap <- getMap config -- C.lookup config "cards" :: IO (Maybe [Text])
-  let cards = HM.lookup "cards" configMap
-  case cards of
-   Nothing -> do
-     logInfo ("Configuration file at " ++
-       configPath ++
-       " is missing a definition for `cards`.")
-   Just l -> do
-     putStrLn (show l)
+  logInfo ("Loading configuration at " ++ configPath)
+  catch (
+    do
+      config <- load [Required configPath]
+      display config
+      configMap <- getMap config -- C.lookup config "cards" :: IO (Maybe [Text])
+      let cards = HM.lookup "cards" configMap
+      case cards of
+       Nothing -> do
+         logInfo ("Configuration file at " ++
+                  configPath ++
+                  " is missing a definition for `cards`.")
+       Just l -> do
+         putStrLn (show l))
+    handleError
+  where
+    handleError (SomeException _) =
+      logInfo ("Could not find configuration file at " ++ configPath)
 
 -- Example config:
 -- cards = [["0012342de4ce","e7403a0123402ca062"],["1234562d5678","12342a062"]]

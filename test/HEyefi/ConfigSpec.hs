@@ -8,6 +8,7 @@ import Control.Exception (catch, SomeException)
 import System.IO.Silently (capture_)
 import System.FilePath ((</>))
 import System.Directory (getTemporaryDirectory)
+import Data.Text (isInfixOf, pack)
 
 import HEyefi.Config
 
@@ -20,4 +21,4 @@ spec = do
          tempdir <- catch getTemporaryDirectory (\(_::SomeException) -> return ".")
          let file = tempdir </> "heyefi.config"
          output <- capture_ (reloadConfig file)
-         output `shouldBe` ("Could not find configuration file at " ++ file)))
+         (pack ("Could not find configuration file at " ++ file)) `isInfixOf` (pack output) `shouldBe` True ))
