@@ -18,8 +18,7 @@ import Data.ByteString.UTF8 (fromString)
 import Data.List (find)
 import Data.Maybe (isJust, fromJust, isNothing)
 import Data.Time.Clock
-import Data.Time.Format (formatTime)
-import System.Locale (rfc822DateFormat, defaultTimeLocale)
+import Data.Time.Format (formatTime, rfc822DateFormat, defaultTimeLocale)
 import Network.Wai ( responseLBS
                    , Application
                    , Request
