@@ -9,7 +9,6 @@ unhex (a:b:xs) = do
   return (toEnum ((first * 16) + second) : rest)
 unhex [_] = Nothing
 
-
 c :: Char -> Maybe Int
 c '0' = Just 0
 c '1' = Just 1
