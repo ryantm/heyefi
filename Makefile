@@ -14,3 +14,7 @@ build :
 
 shell :
 	$(NIXSHELL_COMMAND)
+
+.PHONY : testv
+testv :
+	cabal exec -- runhaskell -Wall -Werror -fno-warn-orphans -isrc -itest test/Spec.hs
