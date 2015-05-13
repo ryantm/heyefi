@@ -54,7 +54,6 @@ reloadConfig configPath = do
                  " with message: " ++
                  msg)),
      Handler (\(SomeException e) -> do
-      putStrLn (show e)
       logInfo ("Could not find configuration file at " ++ configPath))]
 
 -- Example config:
