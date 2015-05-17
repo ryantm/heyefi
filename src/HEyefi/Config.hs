@@ -53,7 +53,7 @@ reloadConfig configPath = do
                  p ++
                  " with message: " ++
                  msg)),
-     Handler (\(SomeException e) -> do
+     Handler (\(SomeException _) -> do
       logInfo ("Could not find configuration file at " ++ configPath))]
 
 -- Example config:
