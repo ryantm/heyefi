@@ -8,7 +8,6 @@ import Control.Exception (catch, SomeException, throwIO)
 import System.IO.Silently (capture_)
 import System.FilePath ((</>))
 import System.Directory (getTemporaryDirectory)
-import Data.Text (isInfixOf, pack)
 
 import HEyefi.Config
 
@@ -22,8 +21,6 @@ removeIfExists fileName = removeFile fileName `catch` handleExists
           | otherwise = throwIO e
 
 
-
-
 spec :: Spec
 spec = do
   describe "reloadConfig" (do
@@ -33,7 +30,7 @@ spec = do
          let file = tempdir </> "heyefi.config"
          removeIfExists file
          output <- capture_ (reloadConfig file)
-         (pack ("Could not find configuration file at " ++ file)) `isInfixOf` (pack output) `shouldBe` True ))
+         output `shouldContain` "Could not find configuration file at " ++ file))
     (it "should report an error for an unparsable configuration file"
      (do
          tempdir <- catch getTemporaryDirectory (\(_::SomeException) -> return ".")
@@ -41,5 +38,4 @@ spec = do
          removeIfExists file
          writeFile file "a = (\n"
          output <- capture_ (reloadConfig file)
-         (pack ("Error parsing configuration file at /tmp/heyefi.config with message: endOfInput"))
-           `isInfixOf` (pack output) `shouldBe` True )))
+         output `shouldContain` "Error parsing configuration file at /tmp/heyefi.config with message: endOfInput")))
