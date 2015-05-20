@@ -38,4 +38,5 @@ spec = do
          removeIfExists file
          writeFile file "a = (\n"
          output <- capture_ (reloadConfig file)
-         output `shouldContain` "Error parsing configuration file at /tmp/heyefi.config with message: endOfInput")))
+         output `shouldContain` "Error parsing configuration file at "
+         output `shouldContain` "with message: endOfInput")))
