@@ -39,4 +39,12 @@ spec = do
          writeFile file "a = (\n"
          output <- capture_ (reloadConfig file)
          output `shouldContain` "Error parsing configuration file at "
-         output `shouldContain` "with message: endOfInput")))
+         output `shouldContain` "with message: endOfInput"))
+    (it "should complain about missing cards configuration"
+     (do
+         tempdir <- catch getTemporaryDirectory (\(_::SomeException) -> return ".")
+         let file = tempdir </> "heyefi.config"
+         removeIfExists file
+         writeFile file "upload_dir = \"/data/annex/doxie/unsorted\""
+         output <- capture_ (reloadConfig file)
+         output `shouldContain` "missing a definition for `cards`.")))
