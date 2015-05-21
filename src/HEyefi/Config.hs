@@ -7,6 +7,7 @@ import HEyefi.Log (logInfo)
 import Control.Concurrent.STM (TVar, readTVar, writeTVar, atomically, retry)
 import Control.Exception (finally, catches, Handler (..))
 import Control.Exception (SomeException (..))
+import Control.Monad (void)
 import Data.HashMap.Strict ()
 import qualified Data.HashMap.Strict as HM
 
@@ -14,11 +15,12 @@ import Data.Text (Text)
 
 import Data.Configurator (display, load, Worth (Required), getMap)
 import Data.Configurator.Types (ConfigError (ParseError))
+import qualified Data.Configurator.Types as CT
 
 type MacAddress = Text
 type UploadKey = Text
 
-data CardConfig = HashMap MacAddress UploadKey
+type CardConfig = HM.HashMap MacAddress UploadKey
 
 data Config = Config {
   cardMap :: CardConfig,
@@ -32,7 +34,7 @@ waitForWake wakeSig = atomically (
       Just _ -> writeTVar wakeSig Nothing
       Nothing -> retry)
 
-reloadConfig :: FilePath -> IO ()
+reloadConfig :: FilePath -> IO Config
 reloadConfig configPath = do
   logInfo ("Trying to load configuration at " ++ configPath)
   catches (
@@ -46,15 +48,24 @@ reloadConfig configPath = do
          logInfo ("Configuration file at " ++
                   configPath ++
                   " is missing a definition for `cards`.")
+         return emptyConfig
        Just l -> do
-         putStrLn (show l))
+         putStrLn (show l)
+         let (CT.List innerList) = l
+         let (CT.List [CT.String macAddress, CT.String key]) = head innerList
+         return Config { cardMap = HM.fromList [(macAddress, key)], uploadDirectory = ""}
+    )
     [Handler (\(ParseError p msg) -> do
-        logInfo ("Error parsing configuration file at " ++
-                 p ++
-                 " with message: " ++
-                 msg)),
+                 logInfo ("Error parsing configuration file at " ++
+                          p ++
+                          " with message: " ++
+                          msg)
+                 return emptyConfig),
      Handler (\(SomeException _) -> do
-      logInfo ("Could not find configuration file at " ++ configPath))]
+                 logInfo ("Could not find configuration file at " ++ configPath)
+                 return emptyConfig)]
+  where
+    emptyConfig = Config { cardMap = HM.empty, uploadDirectory = ""}
 
 -- Example config:
 -- cards = [["0012342de4ce","e7403a0123402ca062"],["1234562d5678","12342a062"]]
@@ -62,5 +73,5 @@ reloadConfig configPath = do
 monitorConfig :: FilePath -> TVar (Maybe Int) -> IO ()
 monitorConfig configPath wakeSignal =
   finally
-    (reloadConfig configPath)
+    (void (reloadConfig configPath))
     (waitForWake wakeSignal)
