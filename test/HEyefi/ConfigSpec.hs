@@ -20,31 +20,33 @@ removeIfExists fileName = removeFile fileName `catch` handleExists
           | isDoesNotExistError e = return ()
           | otherwise = throwIO e
 
+getNonexistentTemporaryFile :: IO FilePath
+getNonexistentTemporaryFile = do
+  tempdir <- catch getTemporaryDirectory (\(_::SomeException) -> return ".")
+  let file = tempdir </> "heyefi.config"
+  removeIfExists file
+  return file
+
+makeAndReloadFile :: String -> IO String
+makeAndReloadFile contents = do
+  file <- getNonexistentTemporaryFile
+  writeFile file contents
+  capture_ (reloadConfig file)
 
 spec :: Spec
 spec = do
   describe "reloadConfig" (do
     (it "should report an error for a non-existent configuration file"
      (do
-         tempdir <- catch getTemporaryDirectory (\(_::SomeException) -> return ".")
-         let file = tempdir </> "heyefi.config"
-         removeIfExists file
+         file <- getNonexistentTemporaryFile
          output <- capture_ (reloadConfig file)
          output `shouldContain` "Could not find configuration file at " ++ file))
     (it "should report an error for an unparsable configuration file"
      (do
-         tempdir <- catch getTemporaryDirectory (\(_::SomeException) -> return ".")
-         let file = tempdir </> "heyefi.config"
-         removeIfExists file
-         writeFile file "a = (\n"
-         output <- capture_ (reloadConfig file)
+         output <- makeAndReloadFile "a = (\n"
          output `shouldContain` "Error parsing configuration file at "
          output `shouldContain` "with message: endOfInput"))
     (it "should complain about missing cards configuration"
      (do
-         tempdir <- catch getTemporaryDirectory (\(_::SomeException) -> return ".")
-         let file = tempdir </> "heyefi.config"
-         removeIfExists file
-         writeFile file "upload_dir = \"/data/annex/doxie/unsorted\""
-         output <- capture_ (reloadConfig file)
+         output <- makeAndReloadFile "upload_dir = \"/data/annex/doxie/unsorted\""
          output `shouldContain` "missing a definition for `cards`.")))
