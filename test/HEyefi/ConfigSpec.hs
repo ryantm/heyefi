@@ -58,7 +58,14 @@ spec = do
      (do
          output <- makeAndReloadFile_ "upload_dir = \"/data/annex/doxie/unsorted\""
          output `shouldContain` "missing a definition for `cards`."))
+    (it "should complain about cards not having the correct format"
+     (do
+         (_, config) <- makeAndReloadFile "upload_dir = \"/data/annex/doxie/unsorted\"\ncards=[[\"1\",\"2\",\"3\"]]"
+         (cardMap config) `shouldBe` HM.empty
+         output2 <- makeAndReloadFile_ "upload_dir = \"/data/annex/doxie/unsorted\"\ncards=\"1\""
+         output2 `shouldContain` "Format of cards does not match"))
     (it "should parse cards for a validConfig"
      (do
          (_, config) <- makeAndReloadFile validConfig
-         HM.lookup "0012342de4ce" (cardMap config) `shouldBe` (Just "e7403a0123402ca062"))))
+         HM.lookup "0012342de4ce" (cardMap config) `shouldBe` (Just "e7403a0123402ca062")
+         HM.lookup "1234562d5678" (cardMap config) `shouldBe` (Just "12342a062"))))

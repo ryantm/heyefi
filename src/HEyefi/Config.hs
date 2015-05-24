@@ -8,13 +8,14 @@ import Control.Concurrent.STM (TVar, readTVar, writeTVar, atomically, retry)
 import Control.Exception (finally, catches, Handler (..))
 import Control.Exception (SomeException (..))
 import Control.Monad (void)
+import Data.Maybe (mapMaybe)
 import Data.HashMap.Strict ()
 import qualified Data.HashMap.Strict as HM
 
 import Data.Text (Text)
 
-import Data.Configurator (display, load, Worth (Required), getMap)
-import Data.Configurator.Types (ConfigError (ParseError))
+import Data.Configurator (load, Worth (Required), getMap)
+import Data.Configurator.Types (Value, ConfigError (ParseError))
 import qualified Data.Configurator.Types as CT
 
 type MacAddress = Text
@@ -34,14 +35,23 @@ waitForWake wakeSig = atomically (
       Just _ -> writeTVar wakeSig Nothing
       Nothing -> retry)
 
+convertCardList :: Value -> Either String [(Text, Text)]
+convertCardList (CT.List innerList) =
+  Right (mapMaybe extractTuple innerList)
+  where
+    extractTuple :: Value -> Maybe (Text, Text)
+    extractTuple (CT.List [CT.String macAddress, CT.String key]) =
+      Just (macAddress, key)
+    extractTuple _ = Nothing
+convertCardList _ = Left "Format of cards does not match [[MacAddress, Key],[MacAddress, Key],...]."
+
 reloadConfig :: FilePath -> IO Config
 reloadConfig configPath = do
   logInfo ("Trying to load configuration at " ++ configPath)
   catches (
     do
       config <- load [Required configPath]
-      display config
-      configMap <- getMap config -- C.lookup config "cards" :: IO (Maybe [Text])
+      configMap <- getMap config
       let cards = HM.lookup "cards" configMap
       case cards of
        Nothing -> do
@@ -50,10 +60,13 @@ reloadConfig configPath = do
                   " is missing a definition for `cards`.")
          return emptyConfig
        Just l -> do
-         putStrLn (show l)
-         let (CT.List innerList) = l
-         let (CT.List [CT.String macAddress, CT.String key]) = head innerList
-         return Config { cardMap = HM.fromList [(macAddress, key)], uploadDirectory = ""}
+         case (convertCardList l) of
+          (Right cardList) ->
+            return Config {
+              cardMap = HM.fromList cardList, uploadDirectory = ""}
+          (Left msg) -> do
+            logInfo msg
+            return emptyConfig
     )
     [Handler (\(ParseError p msg) -> do
                  logInfo ("Error parsing configuration file at " ++
