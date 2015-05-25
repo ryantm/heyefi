@@ -6,7 +6,7 @@ module HEyefi.ConfigSpec where
 import Test.Hspec
 
 import Control.Exception (catch, SomeException, throwIO)
-import System.IO.Silently (capture, capture_)
+import System.IO.Silently (capture)
 import System.FilePath ((</>))
 import System.Directory (getTemporaryDirectory)
 
@@ -47,16 +47,19 @@ spec = do
     (it "should report an error for a non-existent configuration file"
      (do
          file <- getNonexistentTemporaryFile
-         output <- capture_ (reloadConfig file)
+         (output, config) <- capture (reloadConfig file)
+         (cardMap config) `shouldBe` HM.empty
          output `shouldContain` "Could not find configuration file at " ++ file))
     (it "should report an error for an unparsable configuration file"
      (do
-         output <- makeAndReloadFile_ "a = (\n"
+         (output, config) <- makeAndReloadFile "a = (\n"
+         (cardMap config) `shouldBe` HM.empty
          output `shouldContain` "Error parsing configuration file at "
          output `shouldContain` "with message: endOfInput"))
     (it "should complain about missing cards configuration"
      (do
-         output <- makeAndReloadFile_ "upload_dir = \"/data/annex/doxie/unsorted\""
+         (output, config) <- makeAndReloadFile "upload_dir = \"/data/annex/doxie/unsorted\""
+         (cardMap config) `shouldBe` HM.empty
          output `shouldContain` "missing a definition for `cards`."))
     (it "should complain about cards not having the correct format"
      (do
