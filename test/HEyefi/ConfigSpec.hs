@@ -69,6 +69,8 @@ spec = do
          output2 `shouldContain` "Format of cards does not match"))
     (it "should parse cards for a validConfig"
      (do
-         (_, config) <- makeAndReloadFile validConfig
+         (output, config) <- makeAndReloadFile validConfig
+         putStrLn output
+         (uploadDirectory config) `shouldBe` "/data/photos"
          HM.lookup "0012342de4ce" (cardMap config) `shouldBe` (Just "e7403a0123402ca062")
          HM.lookup "1234562d5678" (cardMap config) `shouldBe` (Just "12342a062"))))

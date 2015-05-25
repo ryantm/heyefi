@@ -12,7 +12,7 @@ import Data.Maybe (mapMaybe)
 import Data.HashMap.Strict ()
 import qualified Data.HashMap.Strict as HM
 
-import Data.Text (Text)
+import Data.Text (Text, unpack)
 
 import Data.Configurator (load, Worth (Required), getMap)
 import Data.Configurator.Types (Value, ConfigError (ParseError))
@@ -45,6 +45,42 @@ convertCardList (CT.List innerList) =
     extractTuple _ = Nothing
 convertCardList _ = Left "Format of cards does not match [[MacAddress, Key],[MacAddress, Key],...]."
 
+getCardConfig :: HM.HashMap CT.Name CT.Value -> IO CardConfig
+getCardConfig configMap = do
+  let cards = HM.lookup "cards" configMap
+  case cards of
+   Nothing -> do
+     logInfo ("Configuration is missing a definition for `cards`.")
+     return HM.empty
+   Just l -> do
+     case convertCardList l of
+      Left msg -> do
+        logInfo msg
+        return HM.empty
+      Right cardList ->
+        return (HM.fromList cardList)
+
+convertUploadDirectory :: Value -> Either String FilePath
+convertUploadDirectory (CT.String uploadDir) =
+  Right (unpack uploadDir)
+convertUploadDirectory _ =
+  Left "Format of upload_dir does not match \"/path/to/upload/dir\""
+
+getUploadDirectory :: HM.HashMap CT.Name CT.Value -> IO FilePath
+getUploadDirectory configMap = do
+  let uploadDir = HM.lookup "upload_dir" configMap
+  case uploadDir of
+   Nothing -> do
+     logInfo ("Configuration is missing a definition for `upload_dir`.")
+     return ""
+   Just uD -> do
+     case convertUploadDirectory uD of
+      Left msg -> do
+        logInfo msg
+        return ""
+      Right path ->
+        return path
+
 reloadConfig :: FilePath -> IO Config
 reloadConfig configPath = do
   logInfo ("Trying to load configuration at " ++ configPath)
@@ -52,21 +88,11 @@ reloadConfig configPath = do
     do
       config <- load [Required configPath]
       configMap <- getMap config
-      let cards = HM.lookup "cards" configMap
-      case cards of
-       Nothing -> do
-         logInfo ("Configuration file at " ++
-                  configPath ++
-                  " is missing a definition for `cards`.")
-         return emptyConfig
-       Just l -> do
-         case (convertCardList l) of
-          (Right cardList) ->
-            return Config {
-              cardMap = HM.fromList cardList, uploadDirectory = ""}
-          (Left msg) -> do
-            logInfo msg
-            return emptyConfig
+      cardConfig <- getCardConfig configMap
+      uploadDir <- getUploadDirectory configMap
+      return Config {
+        cardMap = cardConfig,
+        uploadDirectory = uploadDir }
     )
     [Handler (\(ParseError p msg) -> do
                  logInfo ("Error parsing configuration file at " ++
