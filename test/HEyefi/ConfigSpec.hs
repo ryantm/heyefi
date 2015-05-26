@@ -67,6 +67,11 @@ spec = do
          (cardMap config) `shouldBe` HM.empty
          output2 <- makeAndReloadFile_ "upload_dir = \"/data/annex/doxie/unsorted\"\ncards=\"1\""
          output2 `shouldContain` "Format of cards does not match"))
+    (it "should complain about missing upload_dir configuration"
+     (do
+         (output, config) <-  makeAndReloadFile "cards = [[\"0012342de4ce\",\"e7403a0123402ca062\"],[\"1234562d5678\",\"12342a062\"]]"
+         (uploadDirectory config) `shouldBe` ""
+         output `shouldContain`"missing a definition for `upload_dir`."))
     (it "should parse cards for a validConfig"
      (do
          (output, config) <- makeAndReloadFile validConfig
