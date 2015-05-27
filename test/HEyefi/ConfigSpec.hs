@@ -72,7 +72,7 @@ spec = do
          (output, config) <-  makeAndReloadFile "cards = [[\"0012342de4ce\",\"e7403a0123402ca062\"],[\"1234562d5678\",\"12342a062\"]]"
          (uploadDirectory config) `shouldBe` ""
          output `shouldContain`"missing a definition for `upload_dir`."))
-    (it "should parse cards for a validConfig"
+    (it "should parse cards for a valid configuration"
      (do
          (output, config) <- makeAndReloadFile validConfig
          putStrLn output
