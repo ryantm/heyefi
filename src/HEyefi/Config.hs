@@ -4,10 +4,9 @@ module HEyefi.Config where
 
 import HEyefi.Log (logInfo)
 
-import Control.Concurrent.STM (TVar, readTVar, writeTVar, atomically, retry)
+import Control.Concurrent.STM (TVar, readTVar, newTVar, writeTVar, atomically, retry)
 import Control.Exception (finally, catches, Handler (..))
 import Control.Exception (SomeException (..))
-import Control.Monad (void)
 import Data.Maybe (mapMaybe)
 import Data.HashMap.Strict ()
 import qualified Data.HashMap.Strict as HM
@@ -103,14 +102,20 @@ reloadConfig configPath = do
      Handler (\(SomeException _) -> do
                  logInfo ("Could not find configuration file at " ++ configPath)
                  return emptyConfig)]
-  where
-    emptyConfig = Config { cardMap = HM.empty, uploadDirectory = ""}
+
+emptyConfig :: Config
+emptyConfig = Config { cardMap = HM.empty, uploadDirectory = ""}
+
+newConfig :: IO (TVar Config)
+newConfig = atomically (newTVar emptyConfig)
 
 -- Example config:
 -- cards = [["0012342de4ce","e7403a0123402ca062"],["1234562d5678","12342a062"]]
 -- upload_dir = "/data/annex/doxie/unsorted"
-monitorConfig :: FilePath -> TVar (Maybe Int) -> IO ()
-monitorConfig configPath wakeSignal =
+monitorConfig :: FilePath -> TVar Config -> TVar (Maybe Int) -> IO ()
+monitorConfig configPath sharedConfig wakeSignal =
   finally
-    (void (reloadConfig configPath))
+    (do
+        config <- reloadConfig configPath
+        atomically (writeTVar sharedConfig config))
     (waitForWake wakeSignal)

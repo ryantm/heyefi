@@ -4,7 +4,7 @@ module Main where
 
 import HEyefi.Constant
 import HEyefi.Log (logInfo)
-import HEyefi.Config (monitorConfig)
+import HEyefi.Config (monitorConfig, newConfig)
 import HEyefi.StartSession (startSessionResponse)
 import HEyefi.GetPhotoStatus (getPhotoStatusResponse)
 import HEyefi.UploadPhoto (uploadPhotoResponse)
@@ -55,8 +55,9 @@ handleHup wakeSig = atomically (writeTVar wakeSig (Just 1))
 main :: IO ()
 main = do
   wakeSig <- atomically (newTVar Nothing)
+  sharedConfig <- newConfig
   _ <- installHandler sigHUP (Catch $ handleHup wakeSig) Nothing
-  _ <- forkIO (forever (monitorConfig configPath wakeSig))
+  _ <- forkIO (forever (monitorConfig configPath sharedConfig wakeSig))
 
   logInfo ("Listening on port " ++ show port)
   run port app
