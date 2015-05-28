@@ -3,6 +3,7 @@
 module HEyefi.Config where
 
 import HEyefi.Log (logInfo)
+import HEyefi.Constant hiding (configPath)
 
 import Control.Concurrent.STM (TVar, readTVar, newTVar, writeTVar, atomically, retry)
 import Control.Exception (finally, catches, Handler (..))
@@ -42,14 +43,14 @@ convertCardList (CT.List innerList) =
     extractTuple (CT.List [CT.String macAddress, CT.String key]) =
       Just (macAddress, key)
     extractTuple _ = Nothing
-convertCardList _ = Left "Format of cards does not match [[MacAddress, Key],[MacAddress, Key],...]."
+convertCardList _ = Left cardsFormatDoesNotMatch
 
 getCardConfig :: HM.HashMap CT.Name CT.Value -> IO CardConfig
 getCardConfig configMap = do
   let cards = HM.lookup "cards" configMap
   case cards of
    Nothing -> do
-     logInfo ("Configuration is missing a definition for `cards`.")
+     logInfo missingCardsDefinition
      return HM.empty
    Just l -> do
      case convertCardList l of
@@ -63,14 +64,14 @@ convertUploadDirectory :: Value -> Either String FilePath
 convertUploadDirectory (CT.String uploadDir) =
   Right (unpack uploadDir)
 convertUploadDirectory _ =
-  Left "Format of upload_dir does not match \"/path/to/upload/dir\""
+  Left uploadDirFormatDoesNotMatch
 
 getUploadDirectory :: HM.HashMap CT.Name CT.Value -> IO FilePath
 getUploadDirectory configMap = do
   let uploadDir = HM.lookup "upload_dir" configMap
   case uploadDir of
    Nothing -> do
-     logInfo ("Configuration is missing a definition for `upload_dir`.")
+     logInfo missingUploadDirDefinition
      return ""
    Just uD -> do
      case convertUploadDirectory uD of
