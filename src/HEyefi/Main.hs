@@ -4,7 +4,7 @@ module Main where
 
 import HEyefi.Constant
 import HEyefi.Log (logInfo)
-import HEyefi.Config (monitorConfig, newConfig)
+import HEyefi.Config (SharedConfig, monitorConfig, newConfig)
 import HEyefi.StartSession (startSessionResponse)
 import HEyefi.GetPhotoStatus (getPhotoStatusResponse)
 import HEyefi.UploadPhoto (uploadPhotoResponse)
@@ -60,7 +60,7 @@ main = do
   _ <- forkIO (forever (monitorConfig configPath sharedConfig wakeSig))
 
   logInfo ("Listening on port " ++ show port)
-  run port app
+  run port (app sharedConfig)
 
 data SoapAction = StartSession
                 | GetPhotoStatus
@@ -81,8 +81,8 @@ soapAction req =
    _ -> Nothing
 
 
-handleSoapAction :: SoapAction -> BL.ByteString -> Application
-handleSoapAction StartSession body _ f = do
+handleSoapAction :: SoapAction -> SharedConfig -> BL.ByteString -> Application
+handleSoapAction StartSession config body _ f = do
   logInfo "Got StartSession request"
   let xmlDocument = readString [] (toString body)
   let getTagText = \ s -> runX (xmlDocument >>> css s /> getText)
@@ -93,6 +93,7 @@ handleSoapAction StartSession body _ f = do
   logInfo (show macaddress)
   logInfo (show transfermodetimestamp)
   responseBody <- (startSessionResponse
+                   config
                    (head macaddress)
                    (head cnonce)
                    (head transfermode)
@@ -106,7 +107,7 @@ handleSoapAction StartSession body _ f = do
      , (CI.mk "Pragma", "no-cache")
      , (hServer, "Eye-Fi Agent/2.0.4.0 (Windows XP SP2)")
      , (hContentLength, fromString (show (length responseBody)))] (fromStrict (fromString responseBody)))
-handleSoapAction GetPhotoStatus _ _ f = do
+handleSoapAction GetPhotoStatus _ _ _ f = do
   logInfo "Got GetPhotoStatus request"
   responseBody <- getPhotoStatusResponse
   t <- getCurrentTime
@@ -117,7 +118,7 @@ handleSoapAction GetPhotoStatus _ _ f = do
      , (CI.mk "Pragma", "no-cache")
      , (hServer, "Eye-Fi Agent/2.0.4.0 (Windows XP SP2)")
      , (hContentLength, fromString (show (length responseBody)))] (fromStrict (fromString responseBody)))
-handleSoapAction MarkLastPhotoInRoll _ _ f = do
+handleSoapAction MarkLastPhotoInRoll _ _ _ f = do
   logInfo "Got MarkLastPhotoInRoll request"
   responseBody <- markLastPhotoInRollResponse
   t <- getCurrentTime
@@ -129,11 +130,8 @@ handleSoapAction MarkLastPhotoInRoll _ _ f = do
      , (hServer, "Eye-Fi Agent/2.0.4.0 (Windows XP SP2)")
      , (hContentLength, fromString (show (length responseBody)))] (fromStrict (fromString responseBody)))
 
-
-
-
-handleUpload :: BL.ByteString -> Application
-handleUpload body _ f = do
+handleUpload :: SharedConfig -> BL.ByteString -> Application
+handleUpload _ body _ f = do
   let MultiPart bodyParts = parseMultipartBody multipartBodyBoundary body
   logInfo (show (length bodyParts))
   lBP bodyParts
@@ -162,17 +160,17 @@ handleUpload body _ f = do
       return ()
 
 
-dispatchRequest :: BL.ByteString -> Application
-dispatchRequest body req f
+dispatchRequest :: SharedConfig -> BL.ByteString -> Application
+dispatchRequest config body req f
   | requestMethod req == "POST" &&
     pathInfo req == ["api","soap","eyefilm","v1","upload"] &&
     isNothing (soapAction req) =
-      handleUpload body req f
-dispatchRequest body req f
+      handleUpload config body req f
+dispatchRequest config body req f
   | requestMethod req == "POST" &&
     isJust (soapAction req) =
-      handleSoapAction (fromJust (soapAction req)) body req f
-dispatchRequest  _ _ _ = error "did not match dispatch"
+      handleSoapAction (fromJust (soapAction req)) config body req f
+dispatchRequest _ _ _ _ = error "did not match dispatch"
 
 getWholeRequestBody :: Request -> IO B.ByteString
 getWholeRequestBody request = do
@@ -183,10 +181,10 @@ getWholeRequestBody request = do
      rest <- getWholeRequestBody request
      return (B.append r rest)
 
-app :: Application
-app req f = do
+app :: SharedConfig -> Application
+app config req f = do
   body <- getWholeRequestBody req
   logInfo (show (pathInfo req))
   logInfo (show (requestHeaders req))
   -- logInfo (show (toString body))
-  dispatchRequest (fromStrict body) req f
+  dispatchRequest config (fromStrict body) req f

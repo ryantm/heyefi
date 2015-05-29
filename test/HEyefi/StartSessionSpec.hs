@@ -3,12 +3,15 @@ module HEyefi.StartSessionSpec where
 import Test.Hspec
 
 import HEyefi.StartSession
+import HEyefi.Config (newConfig)
 
 spec :: Spec
 spec = do
   describe "startSessionResponse"
     (it "should respond the same as eyefiserver2"
-     (do d <- startSessionResponse
+     (do c <- newConfig
+         d <- startSessionResponse
+              c
               "0018562de4ce"
               "3623cd00fe5aef4c7ccdc66ddbe2f151"
               "34"

@@ -12,7 +12,7 @@ import Data.Maybe (mapMaybe)
 import Data.HashMap.Strict ()
 import qualified Data.HashMap.Strict as HM
 
-import Data.Text (Text, unpack)
+import Data.Text (Text, unpack, pack)
 
 import Data.Configurator (load, Worth (Required), getMap)
 import Data.Configurator.Types (Value, ConfigError (ParseError))
@@ -27,6 +27,9 @@ data Config = Config {
   cardMap :: CardConfig,
   uploadDirectory :: FilePath
 }
+
+type SharedConfig = TVar Config
+
 
 waitForWake :: TVar (Maybe Int) -> IO ()
 waitForWake wakeSig = atomically (
@@ -107,16 +110,21 @@ reloadConfig configPath = do
 emptyConfig :: Config
 emptyConfig = Config { cardMap = HM.empty, uploadDirectory = ""}
 
-newConfig :: IO (TVar Config)
+newConfig :: IO SharedConfig
 newConfig = atomically (newTVar emptyConfig)
 
 -- Example config:
 -- cards = [["0012342de4ce","e7403a0123402ca062"],["1234562d5678","12342a062"]]
 -- upload_dir = "/data/annex/doxie/unsorted"
-monitorConfig :: FilePath -> TVar Config -> TVar (Maybe Int) -> IO ()
+monitorConfig :: FilePath -> SharedConfig -> TVar (Maybe Int) -> IO ()
 monitorConfig configPath sharedConfig wakeSignal =
   finally
     (do
         config <- reloadConfig configPath
         atomically (writeTVar sharedConfig config))
     (waitForWake wakeSignal)
+
+getUploadKeyForMacaddress :: SharedConfig -> String -> IO (Maybe String)
+getUploadKeyForMacaddress c mac = do
+  c' <- atomically (readTVar c)
+  return (fmap unpack (HM.lookup (pack mac) (cardMap c')))
