@@ -3,7 +3,7 @@
 module HEyefi.StartSession where
 
 import HEyefi.Hex (unhex)
-import HEyefi.Config (SharedConfig, getUploadKeyForMacaddress)
+import HEyefi.Config (Config, getUploadKeyForMacaddress)
 import HEyefi.Log (logInfo)
 
 import Text.XML.HXT.Core ( runX
@@ -18,9 +18,9 @@ import Control.Arrow ((>>>))
 import Data.Hash.MD5 (md5s, Str (..))
 import Data.Maybe (fromJust)
 
-startSessionResponse :: SharedConfig -> String -> String -> String -> String -> IO String
+startSessionResponse :: Config -> String -> String -> String -> String -> IO String
 startSessionResponse config macaddress cnonce transfermode transfermodetimestamp = do
-  upload_key_0 <- getUploadKeyForMacaddress config macaddress
+  let upload_key_0 = getUploadKeyForMacaddress config macaddress
   case upload_key_0 of
    Nothing -> do
      logInfo ("No upload key found in configuration for macaddress: " ++ macaddress)

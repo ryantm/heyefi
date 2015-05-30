@@ -31,6 +31,14 @@ data Config = Config {
 type SharedConfig = TVar Config
 
 
+insertCard :: Text -> Text -> Config -> Config
+insertCard macAddress uploadKey c = do
+  Config {
+    cardMap = HM.insert macAddress uploadKey (cardMap c),
+    uploadDirectory = uploadDirectory c
+    }
+
+
 waitForWake :: TVar (Maybe Int) -> IO ()
 waitForWake wakeSig = atomically (
   do state <- readTVar wakeSig
@@ -124,7 +132,6 @@ monitorConfig configPath sharedConfig wakeSignal =
         atomically (writeTVar sharedConfig config))
     (waitForWake wakeSignal)
 
-getUploadKeyForMacaddress :: SharedConfig -> String -> IO (Maybe String)
-getUploadKeyForMacaddress c mac = do
-  c' <- atomically (readTVar c)
-  return (fmap unpack (HM.lookup (pack mac) (cardMap c')))
+getUploadKeyForMacaddress :: Config -> String -> Maybe String
+getUploadKeyForMacaddress c mac =
+  (fmap unpack (HM.lookup (pack mac) (cardMap c)))
