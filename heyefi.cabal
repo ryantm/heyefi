@@ -36,6 +36,7 @@ executable heyefi
                      , configurator
                      , unordered-containers
                      , text
+                     , errors
 
 test-suite test-heyefi
   default-language: Haskell2010
@@ -69,3 +70,4 @@ test-suite test-heyefi
                   , silently
                   , filepath
                   , directory
+                  , errors
