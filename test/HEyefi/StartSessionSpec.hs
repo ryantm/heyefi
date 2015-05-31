@@ -1,15 +1,17 @@
+{-# LANGUAGE OverloadedStrings #-}
 module HEyefi.StartSessionSpec where
 
 import Test.Hspec
 
 import HEyefi.StartSession
-import HEyefi.Config (newConfig)
+import HEyefi.Config (emptyConfig, insertCard)
 
 spec :: Spec
 spec = do
   describe "startSessionResponse"
     (it "should respond the same as eyefiserver2"
-     (do c <- newConfig
+     (do
+         let c = insertCard "0018562de4ce" "36d61e4e7403a0586702c9159892a062" emptyConfig
          d <- startSessionResponse
               c
               "0018562de4ce"
