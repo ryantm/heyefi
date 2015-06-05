@@ -101,6 +101,7 @@ reloadConfig configPath = do
       configMap <- getMap config
       cardConfig <- getCardConfig configMap
       uploadDir <- getUploadDirectory configMap
+      logInfo "Loaded configuration"
       return Config {
         cardMap = cardConfig,
         uploadDirectory = uploadDir }

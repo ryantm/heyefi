@@ -4,7 +4,7 @@ module Main where
 
 import HEyefi.Constant
 import HEyefi.Log (logInfo)
-import HEyefi.Config (SharedConfig, monitorConfig, newConfig)
+import HEyefi.Config (SharedConfig, monitorConfig, newConfig, uploadDirectory)
 import HEyefi.StartSession (startSessionResponse)
 import HEyefi.GetPhotoStatus (getPhotoStatusResponse)
 import HEyefi.UploadPhoto (uploadPhotoResponse)
@@ -46,8 +46,10 @@ import Codec.Archive.Tar (extract)
 
 import Control.Monad (forever)
 import Control.Concurrent (forkIO)
-import Control.Concurrent.STM (newTVar, atomically, writeTVar, TVar)
+import Control.Concurrent.STM (newTVar, atomically, writeTVar, TVar, readTVar)
 import System.Posix.Signals (installHandler, sigHUP, Handler( Catch ))
+import System.IO.Temp (withSystemTempFile)
+import System.IO (hClose)
 
 handleHup :: TVar (Maybe Int) -> IO ()
 handleHup wakeSig = atomically (writeTVar wakeSig (Just 1))
@@ -92,8 +94,9 @@ handleSoapAction StartSession config body _ f = do
   transfermodetimestamp <- getTagText "transfermodetimestamp"
   logInfo (show macaddress)
   logInfo (show transfermodetimestamp)
+  config' <- atomically (readTVar config)
   responseBody <- (startSessionResponse
-                   config
+                   config'
                    (head macaddress)
                    (head cnonce)
                    (head transfermode)
@@ -130,16 +133,28 @@ handleSoapAction MarkLastPhotoInRoll _ _ _ f = do
      , (hServer, "Eye-Fi Agent/2.0.4.0 (Windows XP SP2)")
      , (hContentLength, fromString (show (length responseBody)))] (fromStrict (fromString responseBody)))
 
+writeTarFile :: SharedConfig -> BL.ByteString -> IO ()
+writeTarFile c file = do
+  config <- atomically (readTVar c)
+  let uploadDir = uploadDirectory config
+  withSystemTempFile "heyefi.tar" (handleFile uploadDir)
+  where
+    handleFile uploadDir filePath handle = do
+      BL.hPut handle file
+      hClose handle
+      extract uploadDir filePath
+
 handleUpload :: SharedConfig -> BL.ByteString -> Application
-handleUpload _ body _ f = do
+handleUpload config body _ f = do
   let MultiPart bodyParts = parseMultipartBody multipartBodyBoundary body
   logInfo (show (length bodyParts))
   lBP bodyParts
   let (BodyPart _ soapEnvelope) = bodyParts !! 0
   let (BodyPart _ file) = bodyParts !! 1
   let (BodyPart _ digest) = bodyParts !! 2
-  BL.writeFile "/home/ryantm/p/heyefi/photos/tmp.tar" file
-  extract "/home/ryantm/p/heyefi/photos/" "/home/ryantm/p/heyefi/photos/tmp.tar"
+
+  writeTarFile config file
+
   logInfo (show soapEnvelope)
   logInfo (show digest)
   responseBody <- uploadPhotoResponse
