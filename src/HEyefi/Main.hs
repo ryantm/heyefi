@@ -133,6 +133,8 @@ handleSoapAction MarkLastPhotoInRoll _ _ _ f = do
      , (hServer, "Eye-Fi Agent/2.0.4.0 (Windows XP SP2)")
      , (hContentLength, fromString (show (length responseBody)))] (fromStrict (fromString responseBody)))
 
+-- TODO: handle case where uploaded file has a bad format
+-- TODO: handle case where temp file is not created
 writeTarFile :: SharedConfig -> BL.ByteString -> IO ()
 writeTarFile c file = do
   config <- atomically (readTVar c)
