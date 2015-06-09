@@ -38,6 +38,7 @@ executable heyefi
                      , text
                      , errors
                      , temporary
+                     , directory
 
 test-suite test-heyefi
   default-language: Haskell2010
@@ -73,3 +74,4 @@ test-suite test-heyefi
                   , directory
                   , errors
                   , temporary
+                  , directory
