@@ -2,15 +2,19 @@
 
 module HEyefi.UploadPhoto where
 
-import HEyefi.Constant (multipartBodyBoundary)
-import HEyefi.Log (logInfo)
-import HEyefi.Soap (mkResponse)
-import HEyefi.Config (SharedConfig, uploadDirectory)
+import           HEyefi.Constant (multipartBodyBoundary)
+import           HEyefi.Log (logInfo)
+import           HEyefi.Soap (mkResponse)
+import           HEyefi.Config (SharedConfig, uploadDirectory)
 
+import           Codec.Archive.Tar (extract)
+import           Control.Arrow ((>>>))
+import           Control.Concurrent.STM (atomically, readTVar)
 import qualified Data.ByteString.Lazy as BL
-
-import Network.Multipart ( parseMultipartBody, MultiPart (..), BodyPart (..) )
-import Control.Concurrent.STM (atomically, readTVar)
+import           Network.Multipart ( parseMultipartBody, MultiPart (..), BodyPart (..) )
+import           Network.Wai ( Application )
+import           System.IO (hClose)
+import           System.IO.Temp (withSystemTempFile)
 import Text.XML.HXT.Core ( runX
                          , mkelem
                          , spi
@@ -19,13 +23,13 @@ import Text.XML.HXT.Core ( runX
                          , txt
                          , root
                          , writeDocumentToString)
-import Control.Arrow ((>>>))
-import System.IO.Temp (withSystemTempFile)
-import System.IO (hClose)
-import Network.Wai ( Application )
-import Codec.Archive.Tar (extract)
+import System.Posix.Files (setOwnerAndGroup, fileOwner, fileGroup, getFileStatus)
 
+matchDirectoryOwnership :: FilePath -> FilePath -> IO ()
+matchDirectoryOwnership directoryToMatch directoryToChange = do
+  s <- getFileStatus directoryToMatch
 
+  setOwnerAndGroup file (fileOwner s) (fileGroup s)
 
 uploadPhotoResponse :: IO String
 uploadPhotoResponse = do
@@ -54,9 +58,12 @@ writeTarFile c file = do
   withSystemTempFile "heyefi.tar" (handleFile uploadDir)
   where
     handleFile uploadDir filePath handle = do
+      withSystemTempDirectory "heyefi_extracted" (handleDir tempFile uploadDir)
+    handleDir uploadDir tempFile extractionDir = do
       BL.hPut handle file
       hClose handle
-      extract uploadDir filePath
+      extract extractionDir tempFile
+      matchDirectoryOwnership uploadDir extractionDir
 
 handleUpload :: SharedConfig -> BL.ByteString -> Application
 handleUpload config body _ f = do
