@@ -2,31 +2,30 @@
 
 module Main where
 
-import HEyefi.Constant
-import HEyefi.Log (logInfo)
-import HEyefi.Config (SharedConfig, monitorConfig, newConfig)
-import HEyefi.UploadPhoto (handleUpload)
-import HEyefi.Soap (handleSoapAction, soapAction)
+import           HEyefi.Constant
+import           HEyefi.Log (logInfo)
+import           HEyefi.Config (SharedConfig, monitorConfig, newConfig)
+import           HEyefi.UploadPhoto (handleUpload)
+import           HEyefi.Soap (handleSoapAction, soapAction)
 
 
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
 
-import Data.Maybe (isJust, fromJust, isNothing)
-import Network.Wai ( Application
+import           Data.ByteString.Lazy (fromStrict)
+import           Data.Maybe (isJust, fromJust, isNothing)
+import           Network.Wai ( Application
                    , Request
                    , pathInfo
                    , requestBody
                    , requestMethod
                    , requestHeaders )
-import Network.Wai.Handler.Warp (run)
---import Network.HTTP.Types.Method (Method (..))
-import Data.ByteString.Lazy (fromStrict)
+import           Network.Wai.Handler.Warp (run)
 
-import Control.Monad (forever)
-import Control.Concurrent (forkIO)
-import Control.Concurrent.STM (newTVar, atomically, writeTVar, TVar)
-import System.Posix.Signals (installHandler, sigHUP, Handler( Catch ))
+import           Control.Monad (forever)
+import           Control.Concurrent (forkIO)
+import           Control.Concurrent.STM (newTVar, atomically, writeTVar, TVar)
+import           System.Posix.Signals (installHandler, sigHUP, Handler( Catch ))
 
 handleHup :: TVar (Maybe Int) -> IO ()
 handleHup wakeSig = atomically (writeTVar wakeSig (Just 1))
