@@ -19,7 +19,7 @@ import Data.Hash.MD5 (md5s, Str (..))
 import Data.Maybe (fromJust)
 
 
---TODO: make nounce not hard coded
+--TODO: make snonce not hard coded
 startSessionResponse :: Config ->
                         String ->
                         String ->
