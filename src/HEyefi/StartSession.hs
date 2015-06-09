@@ -18,7 +18,14 @@ import Control.Arrow ((>>>))
 import Data.Hash.MD5 (md5s, Str (..))
 import Data.Maybe (fromJust)
 
-startSessionResponse :: Config -> String -> String -> String -> String -> IO String
+
+--TODO: make nounce not hard coded
+startSessionResponse :: Config ->
+                        String ->
+                        String ->
+                        String ->
+                        String ->
+                        IO String
 startSessionResponse config macaddress cnonce transfermode transfermodetimestamp = do
   let upload_key_0 = getUploadKeyForMacaddress config macaddress
   case upload_key_0 of
