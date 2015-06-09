@@ -10,9 +10,8 @@ import           HEyefi.Soap (handleSoapAction, soapAction)
 
 
 import qualified Data.ByteString as B
-import qualified Data.ByteString.Lazy as BL
-
 import           Data.ByteString.Lazy (fromStrict)
+import qualified Data.ByteString.Lazy as BL
 import           Data.Maybe (isJust, fromJust, isNothing)
 import           Network.Wai ( Application
                    , Request
