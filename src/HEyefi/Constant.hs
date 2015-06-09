@@ -4,7 +4,7 @@ port :: Int
 port = 59278
 
 configPath :: String
-configPath = "/home/ryantm/p/heyefi/heyefi.config"
+configPath = "/etc/heyefi/heyefi.config"
 
 -- mac_0 :: String
 -- mac_0 = "0018562de4ce"
