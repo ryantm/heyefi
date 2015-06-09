@@ -7,3 +7,8 @@ logInfo :: String -> IO ()
 logInfo s = do
   t <- getCurrentTime
   putStrLn (unwords ["[" ++ formatISO8601Millis t ++ "]", "[INFO]", s])
+
+logDebug :: String -> IO ()
+logDebug s = do
+  t <- getCurrentTime
+  putStrLn (unwords ["[" ++ formatISO8601Millis t ++ "]", "[DEBUG]", s])
