@@ -39,6 +39,8 @@ executable heyefi
                      , errors
                      , temporary
                      , directory
+                     , filemanip
+                     , filepath
 
 test-suite test-heyefi
   default-language: Haskell2010
@@ -75,3 +77,4 @@ test-suite test-heyefi
                   , errors
                   , temporary
                   , directory
+                  , filemanip

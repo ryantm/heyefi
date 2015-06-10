@@ -6,19 +6,9 @@ port = 59278
 configPath :: String
 configPath = "/etc/heyefi/heyefi.config"
 
--- upload_uid :: Int
--- upload_uid = 1000
--- upload_gid :: Int
--- upload_gid = 1000
--- upload_file_mode :: Int
--- upload_file_mode = 420
--- upload_dir_mode :: Int
--- upload_dir_mode = 509
-
 multipartBodyBoundary :: String
 multipartBodyBoundary =
   "---------------------------02468ace13579bdfcafebabef00d"
-
 
 -- Messages
 cardsFormatDoesNotMatch :: String

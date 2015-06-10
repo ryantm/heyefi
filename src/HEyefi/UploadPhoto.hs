@@ -14,7 +14,7 @@ import qualified Data.ByteString.Lazy as BL
 import           Network.Multipart ( parseMultipartBody, MultiPart (..), BodyPart (..) )
 import           Network.Wai ( Application )
 import           System.IO (hClose)
-import           System.IO.Temp (withSystemTempFile)
+import           System.IO.Temp (withSystemTempFile, withSystemTempDirectory)
 import Text.XML.HXT.Core ( runX
                          , mkelem
                          , spi
@@ -23,13 +23,25 @@ import Text.XML.HXT.Core ( runX
                          , txt
                          , root
                          , writeDocumentToString)
+import System.Directory (copyFile, getDirectoryContents)
+import System.FilePath.Posix ((</>))
 import System.Posix.Files (setOwnerAndGroup, fileOwner, fileGroup, getFileStatus)
+--import System.FilePath.Find (find, always)
+
 
 matchDirectoryOwnership :: FilePath -> FilePath -> IO ()
 matchDirectoryOwnership directoryToMatch directoryToChange = do
   s <- getFileStatus directoryToMatch
-
-  setOwnerAndGroup file (fileOwner s) (fileGroup s)
+  names <- getDirectoryContents directoryToChange
+  let properNames = filter (`notElem` [".", ".."]) names
+  mapM_ (setOwnership s) properNames
+  mapM_ copyRelatively properNames
+  where
+    addDTC p = directoryToChange </> p
+    setOwnership s filepath =
+      setOwnerAndGroup (addDTC filepath) (fileOwner s) (fileGroup s)
+    copyRelatively path = do
+      copyFile (addDTC path) (directoryToMatch </> path)
 
 uploadPhotoResponse :: IO String
 uploadPhotoResponse = do
@@ -58,10 +70,10 @@ writeTarFile c file = do
   withSystemTempFile "heyefi.tar" (handleFile uploadDir)
   where
     handleFile uploadDir filePath handle = do
-      withSystemTempDirectory "heyefi_extracted" (handleDir tempFile uploadDir)
-    handleDir uploadDir tempFile extractionDir = do
-      BL.hPut handle file
-      hClose handle
+      withSystemTempDirectory "heyefi_extracted" (handleDir uploadDir filePath handle)
+    handleDir uploadDir tempFile tempFileHandle extractionDir = do
+      BL.hPut tempFileHandle file
+      hClose tempFileHandle
       extract extractionDir tempFile
       matchDirectoryOwnership uploadDir extractionDir
 
