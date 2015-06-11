@@ -25,23 +25,24 @@ import Text.XML.HXT.Core ( runX
                          , writeDocumentToString)
 import System.Directory (copyFile, getDirectoryContents)
 import System.FilePath.Posix ((</>))
-import System.Posix.Files (setOwnerAndGroup, fileOwner, fileGroup, getFileStatus)
+import System.Posix.Files (setOwnerAndGroup, fileOwner, fileGroup, getFileStatus, FileStatus)
 --import System.FilePath.Find (find, always)
 
 
-matchDirectoryOwnership :: FilePath -> FilePath -> IO ()
-matchDirectoryOwnership directoryToMatch directoryToChange = do
-  s <- getFileStatus directoryToMatch
-  names <- getDirectoryContents directoryToChange
+copyMatchingOwnership :: FileStatus -> FilePath -> FilePath -> IO ()
+copyMatchingOwnership fi from to = do
+  setOwnerAndGroup from (fileOwner fi) (fileGroup fi)
+  copyFile from to
+
+changeOwnershipAndCopy :: FilePath -> FilePath -> IO ()
+changeOwnershipAndCopy uploadDir extractionDir = do
+  s <- getFileStatus uploadDir
+  names <- getDirectoryContents extractionDir
   let properNames = filter (`notElem` [".", ".."]) names
-  mapM_ (setOwnership s) properNames
-  mapM_ copyRelatively properNames
+  mapM_ (processName s) properNames
   where
-    addDTC p = directoryToChange </> p
-    setOwnership s filepath =
-      setOwnerAndGroup (addDTC filepath) (fileOwner s) (fileGroup s)
-    copyRelatively path = do
-      copyFile (addDTC path) (directoryToMatch </> path)
+    processName s n =
+      copyMatchingOwnership s (extractionDir </> n) (uploadDir </> n)
 
 uploadPhotoResponse :: IO String
 uploadPhotoResponse = do
@@ -75,7 +76,7 @@ writeTarFile c file = do
       BL.hPut tempFileHandle file
       hClose tempFileHandle
       extract extractionDir tempFile
-      matchDirectoryOwnership uploadDir extractionDir
+      changeOwnershipAndCopy uploadDir extractionDir
 
 handleUpload :: SharedConfig -> BL.ByteString -> Application
 handleUpload config body _ f = do
