@@ -38,9 +38,9 @@ changeOwnershipAndCopy :: FilePath -> FilePath -> IO ()
 changeOwnershipAndCopy uploadDir extractionDir = do
   s <- getFileStatus uploadDir
   names <- getDirectoryContents extractionDir
-  let properNames = filter (`notElem` [".", ".."]) names
-  mapM_ (processName s) properNames
+  mapM_ (processName s) (properNames names)
   where
+    properNames = filter (`notElem` [".", ".."])
     processName s n =
       copyMatchingOwnership s (extractionDir </> n) (uploadDir </> n)
 
