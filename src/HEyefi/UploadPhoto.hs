@@ -30,8 +30,8 @@ import System.Posix.Files (setOwnerAndGroup, fileOwner, fileGroup, getFileStatus
 
 
 copyMatchingOwnership :: FileStatus -> FilePath -> FilePath -> IO ()
-copyMatchingOwnership fi from to = do
-  setOwnerAndGroup from (fileOwner fi) (fileGroup fi)
+copyMatchingOwnership fs from to = do
+  setOwnerAndGroup from (fileOwner fs) (fileGroup fs)
   copyFile from to
 
 changeOwnershipAndCopy :: FilePath -> FilePath -> IO ()
