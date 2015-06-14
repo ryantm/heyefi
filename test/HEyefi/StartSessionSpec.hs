@@ -5,6 +5,7 @@ import Test.Hspec
 
 import HEyefi.StartSession
 import HEyefi.Config (emptyConfig, insertCard)
+import HEyefi.Log (LogLevel(Info))
 
 spec :: Spec
 spec = do
@@ -13,6 +14,7 @@ spec = do
      (do
          let c = insertCard "0018562de4ce" "36d61e4e7403a0586702c9159892a062" emptyConfig
          d <- startSessionResponse
+              Info
               c
               "0018562de4ce"
               "3623cd00fe5aef4c7ccdc66ddbe2f151"

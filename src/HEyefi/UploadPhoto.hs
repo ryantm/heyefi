@@ -3,7 +3,7 @@
 module HEyefi.UploadPhoto where
 
 import           HEyefi.Constant (multipartBodyBoundary)
-import           HEyefi.Log (logInfo)
+import           HEyefi.Log (logInfo, LogLevel)
 import           HEyefi.Soap (mkResponse)
 import           HEyefi.Config (SharedConfig, uploadDirectory)
 
@@ -78,10 +78,10 @@ writeTarFile c file = do
       extract extractionDir tempFile
       changeOwnershipAndCopy uploadDir extractionDir
 
-handleUpload :: SharedConfig -> BL.ByteString -> Application
-handleUpload config body _ f = do
+handleUpload :: LogLevel -> SharedConfig -> BL.ByteString -> Application
+handleUpload globalLogLevel config body _ f = do
   let MultiPart bodyParts = parseMultipartBody multipartBodyBoundary body
-  logInfo (show (length bodyParts))
+  logInfo globalLogLevel (show (length bodyParts))
   lBP bodyParts
   let (BodyPart _ soapEnvelope) = bodyParts !! 0
   let (BodyPart _ file) = bodyParts !! 1
@@ -89,16 +89,16 @@ handleUpload config body _ f = do
 
   writeTarFile config file
 
-  logInfo (show soapEnvelope)
-  logInfo (show digest)
+  logInfo globalLogLevel (show soapEnvelope)
+  logInfo globalLogLevel (show digest)
   responseBody <- uploadPhotoResponse
-  logInfo (show responseBody)
+  logInfo globalLogLevel (show responseBody)
   r <- mkResponse responseBody
   f r
 
   where
     lBP [] = return ()
     lBP ((BodyPart headers _):xs) = do
-      logInfo (show headers)
+      logInfo globalLogLevel (show headers)
       lBP xs
       return ()

@@ -9,7 +9,7 @@ module HEyefi.Soap
 import HEyefi.Config (SharedConfig)
 import HEyefi.StartSession (startSessionResponse)
 import HEyefi.GetPhotoStatus (getPhotoStatusResponse)
-import HEyefi.Log (logInfo)
+import HEyefi.Log (logInfo, LogLevel)
 import HEyefi.MarkLastPhotoInRoll (markLastPhotoInRollResponse)
 
 
@@ -80,35 +80,36 @@ defaultResponseHeaders time size =
   , (hServer, "Eye-Fi Agent/2.0.4.0 (Windows XP SP2)")
   , (hContentLength, fromString (show size))]
 
-handleSoapAction :: SoapAction -> SharedConfig -> BL.ByteString -> Application
-handleSoapAction StartSession config body _ f = do
-  logInfo "Got StartSession request"
+handleSoapAction :: SoapAction -> LogLevel -> SharedConfig -> BL.ByteString -> Application
+handleSoapAction StartSession globalLogLevel config body _ f = do
+  logInfo globalLogLevel "Got StartSession request"
   let xmlDocument = readString [] (toString body)
   let getTagText = \ s -> runX (xmlDocument >>> css s /> getText)
   macaddress <- getTagText "macaddress"
   cnonce <- getTagText "cnonce"
   transfermode <- getTagText "transfermode"
   transfermodetimestamp <- getTagText "transfermodetimestamp"
-  logInfo (show macaddress)
-  logInfo (show transfermodetimestamp)
+  logInfo globalLogLevel (show macaddress)
+  logInfo globalLogLevel (show transfermodetimestamp)
   config' <- atomically (readTVar config)
   responseBody <- (startSessionResponse
+                   globalLogLevel
                    config'
                    (head macaddress)
                    (head cnonce)
                    (head transfermode)
                    (head transfermodetimestamp))
-  logInfo (show responseBody)
+  logInfo globalLogLevel (show responseBody)
   response <- mkResponse responseBody
   f response
-handleSoapAction GetPhotoStatus _ _ _ f = do
-  logInfo "Got GetPhotoStatus request"
+handleSoapAction GetPhotoStatus globalLogLevel _ _ _ f = do
+  logInfo globalLogLevel "Got GetPhotoStatus request"
   -- TODO: Check card credential here!
   responseBody <- getPhotoStatusResponse
   response <- mkResponse responseBody
   f response
-handleSoapAction MarkLastPhotoInRoll _ _ _ f = do
-  logInfo "Got MarkLastPhotoInRoll request"
+handleSoapAction MarkLastPhotoInRoll globalLogLevel _ _ _ f = do
+  logInfo globalLogLevel "Got MarkLastPhotoInRoll request"
   responseBody <- markLastPhotoInRollResponse
   response <- mkResponse responseBody
   f response

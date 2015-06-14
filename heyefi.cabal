@@ -41,6 +41,8 @@ executable heyefi
                      , directory
                      , filemanip
                      , filepath
+                     , mtl
+                     , transformers
 
 test-suite test-heyefi
   default-language: Haskell2010
@@ -78,3 +80,5 @@ test-suite test-heyefi
                   , temporary
                   , directory
                   , filemanip
+                  , mtl
+                  , transformers

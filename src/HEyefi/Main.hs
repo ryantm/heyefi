@@ -3,7 +3,7 @@
 module Main where
 
 import           HEyefi.Constant
-import           HEyefi.Log (logInfo)
+import           HEyefi.Log (logInfo, LogLevel(Info))
 import           HEyefi.Config (SharedConfig, monitorConfig, newConfig)
 import           HEyefi.UploadPhoto (handleUpload)
 import           HEyefi.Soap (handleSoapAction, soapAction)
@@ -34,9 +34,11 @@ main = do
   wakeSig <- atomically (newTVar Nothing)
   sharedConfig <- newConfig
   _ <- installHandler sigHUP (Catch $ handleHup wakeSig) Nothing
+  let globalLogLevel = Info
+
   _ <- forkIO (forever (monitorConfig configPath sharedConfig wakeSig))
 
-  logInfo ("Listening on port " ++ show port)
+  logInfo globalLogLevel ("Listening on port " ++ show port)
   run port (app sharedConfig)
 
 app :: SharedConfig -> Application

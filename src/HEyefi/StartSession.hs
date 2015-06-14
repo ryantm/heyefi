@@ -4,7 +4,7 @@ module HEyefi.StartSession where
 
 import HEyefi.Hex (unhex)
 import HEyefi.Config (Config, getUploadKeyForMacaddress)
-import HEyefi.Log (logInfo)
+import HEyefi.Log (logInfo, LogLevel)
 
 import Text.XML.HXT.Core ( runX
                          , mkelem
@@ -20,17 +20,18 @@ import Data.Maybe (fromJust)
 
 
 --TODO: make snonce not hard coded
-startSessionResponse :: Config ->
+startSessionResponse :: LogLevel ->
+                        Config ->
                         String ->
                         String ->
                         String ->
                         String ->
                         IO String
-startSessionResponse config macaddress cnonce transfermode transfermodetimestamp = do
+startSessionResponse globalLogLevel config macaddress cnonce transfermode transfermodetimestamp = do
   let upload_key_0 = getUploadKeyForMacaddress config macaddress
   case upload_key_0 of
    Nothing -> do
-     logInfo ("No upload key found in configuration for macaddress: " ++ macaddress)
+     logInfo globalLogLevel ("No upload key found in configuration for macaddress: " ++ macaddress)
      return ""
    Just upload_key_0' -> do
      let credentialString = macaddress ++ cnonce ++ upload_key_0'

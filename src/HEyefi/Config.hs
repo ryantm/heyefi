@@ -2,7 +2,7 @@
 
 module HEyefi.Config where
 
-import HEyefi.Log (logInfo)
+import HEyefi.Log (logInfo, LogLevel)
 import HEyefi.Constant hiding (configPath)
 
 import Control.Concurrent.STM (TVar, readTVar, newTVar, writeTVar, atomically, retry)
@@ -56,17 +56,17 @@ convertCardList (CT.List innerList) =
     extractTuple _ = Nothing
 convertCardList _ = Left cardsFormatDoesNotMatch
 
-getCardConfig :: HM.HashMap CT.Name CT.Value -> IO CardConfig
-getCardConfig configMap = do
+getCardConfig :: LogLevel -> HM.HashMap CT.Name CT.Value -> IO CardConfig
+getCardConfig globalLogLevel configMap = do
   let cards = HM.lookup "cards" configMap
   case cards of
    Nothing -> do
-     logInfo missingCardsDefinition
+     logInfo globalLogLevel missingCardsDefinition
      return HM.empty
    Just l -> do
      case convertCardList l of
       Left msg -> do
-        logInfo msg
+        logInfo globalLogLevel msg
         return HM.empty
       Right cardList ->
         return (HM.fromList cardList)
@@ -77,43 +77,47 @@ convertUploadDirectory (CT.String uploadDir) =
 convertUploadDirectory _ =
   Left uploadDirFormatDoesNotMatch
 
-getUploadDirectory :: HM.HashMap CT.Name CT.Value -> IO FilePath
-getUploadDirectory configMap = do
+getUploadDirectory :: LogLevel -> HM.HashMap CT.Name CT.Value -> IO FilePath
+getUploadDirectory globalLogLevel configMap = do
   let uploadDir = HM.lookup "upload_dir" configMap
   case uploadDir of
    Nothing -> do
-     logInfo missingUploadDirDefinition
+     logInfo globalLogLevel missingUploadDirDefinition
      return ""
    Just uD -> do
      case convertUploadDirectory uD of
       Left msg -> do
-        logInfo msg
+        logInfo globalLogLevel msg
         return ""
       Right path ->
         return path
 
-reloadConfig :: FilePath -> IO Config
-reloadConfig configPath = do
-  logInfo ("Trying to load configuration at " ++ configPath)
+reloadConfig :: LogLevel -> FilePath -> IO Config
+reloadConfig globalLogLevel configPath = do
+  logInfo globalLogLevel ("Trying to load configuration at " ++ configPath)
   catches (
     do
       config <- load [Required configPath]
       configMap <- getMap config
-      cardConfig <- getCardConfig configMap
-      uploadDir <- getUploadDirectory configMap
-      logInfo "Loaded configuration"
+      cardConfig <- getCardConfig globalLogLevel configMap
+      uploadDir <- getUploadDirectory globalLogLevel configMap
+      logInfo globalLogLevel "Loaded configuration"
       return Config {
         cardMap = cardConfig,
         uploadDirectory = uploadDir }
     )
     [Handler (\(ParseError p msg) -> do
-                 logInfo ("Error parsing configuration file at " ++
+                 logInfo
+                   globalLogLevel
+                   ("Error parsing configuration file at " ++
                           p ++
                           " with message: " ++
                           msg)
                  return emptyConfig),
      Handler (\(SomeException _) -> do
-                 logInfo ("Could not find configuration file at " ++ configPath)
+                 logInfo
+                   globalLogLevel
+                   ("Could not find configuration file at " ++ configPath)
                  return emptyConfig)]
 
 emptyConfig :: Config
@@ -125,11 +129,12 @@ newConfig = atomically (newTVar emptyConfig)
 -- Example config:
 -- cards = [["0012342de4ce","e7403a0123402ca062"],["1234562d5678","12342a062"]]
 -- upload_dir = "/data/annex/doxie/unsorted"
-monitorConfig :: FilePath -> SharedConfig -> TVar (Maybe Int) -> IO ()
-monitorConfig configPath sharedConfig wakeSignal =
+monitorConfig :: LogLevel ->
+                 FilePath -> SharedConfig -> TVar (Maybe Int) -> IO ()
+monitorConfig globalLogLevel configPath sharedConfig wakeSignal =
   finally
     (do
-        config <- reloadConfig configPath
+        config <- reloadConfig globalLogLevel configPath
         atomically (writeTVar sharedConfig config))
     (waitForWake wakeSignal)
 
