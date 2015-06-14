@@ -99,33 +99,16 @@ handleSoapAction StartSession config body _ f = do
                    (head transfermode)
                    (head transfermodetimestamp))
   logInfo (show responseBody)
-  t <- getCurrentTime
-  f (responseLBS
-     status200
-     [ (hContentType, "text/xml; charset=\"utf-8\"")
-     , (hDate, fromString (formatTime defaultTimeLocale rfc822DateFormat t))
-     , (CI.mk "Pragma", "no-cache")
-     , (hServer, "Eye-Fi Agent/2.0.4.0 (Windows XP SP2)")
-     , (hContentLength, fromString (show (length responseBody)))] (fromStrict (fromString responseBody)))
+  response <- mkResponse responseBody
+  f response
 handleSoapAction GetPhotoStatus _ _ _ f = do
   logInfo "Got GetPhotoStatus request"
+  -- TODO: Check card credential here!
   responseBody <- getPhotoStatusResponse
-  t <- getCurrentTime
-  f (responseLBS
-     status200
-     [ (hContentType, "text/xml; charset=\"utf-8\"")
-     , (hDate, fromString (formatTime defaultTimeLocale rfc822DateFormat t))
-     , (CI.mk "Pragma", "no-cache")
-     , (hServer, "Eye-Fi Agent/2.0.4.0 (Windows XP SP2)")
-     , (hContentLength, fromString (show (length responseBody)))] (fromStrict (fromString responseBody)))
+  response <- mkResponse responseBody
+  f response
 handleSoapAction MarkLastPhotoInRoll _ _ _ f = do
   logInfo "Got MarkLastPhotoInRoll request"
   responseBody <- markLastPhotoInRollResponse
-  t <- getCurrentTime
-  f (responseLBS
-     status200
-     [ (hContentType, "text/xml; charset=\"utf-8\"")
-     , (hDate, fromString (formatTime defaultTimeLocale rfc822DateFormat t))
-     , (CI.mk "Pragma", "no-cache")
-     , (hServer, "Eye-Fi Agent/2.0.4.0 (Windows XP SP2)")
-     , (hContentLength, fromString (show (length responseBody)))] (fromStrict (fromString responseBody)))
+  response <- mkResponse responseBody
+  f response
