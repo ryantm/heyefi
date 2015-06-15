@@ -1,10 +1,11 @@
 module HEyefi.Log where
 
+import HEyefi.Types (HEyefiM, LogLevel(..), logLevel)
+
+import Control.Monad.IO.Class (liftIO)
+import Control.Monad.Reader (ask)
 import Data.Time.Clock (getCurrentTime)
 import Data.Time.ISO8601 (formatISO8601Millis)
-
-data LogLevel = Info | Debug
-              deriving (Eq, Show)
 
 log' :: LogLevel -> String -> IO ()
 log' ll s = do
@@ -14,9 +15,13 @@ log' ll s = do
                , "[" ++ show ll ++ "]"
                , s])
 
-logInfo :: LogLevel -> String -> IO ()
-logInfo _ s = log' Info s
+logInfo ::  String -> HEyefiM ()
+logInfo s = liftIO (log' Info s)
 
-logDebug :: LogLevel -> String -> IO ()
-logDebug Debug s = log' Debug s
-logDebug _ _ = return ()
+logDebug :: String -> HEyefiM ()
+logDebug s = do
+  config <- ask
+  let ll = logLevel config
+  case ll of
+   Debug -> liftIO (log' Debug s)
+   _ -> return ()

@@ -43,13 +43,15 @@ main = do
 
 app :: SharedConfig -> Application
 app config req f = do
+  config' <- atomically (readTVar config)
   body <- getWholeRequestBody req
-  logInfo (show (pathInfo req))
-  logInfo (show (requestHeaders req))
-  -- logInfo (show (toString body))
-  dispatchRequest config (fromStrict body) req f
+  (runReaderT (do
+                  logInfo (show (pathInfo req))
+                  logInfo (show (requestHeaders req))
+                  dispatchRequest config (fromStrict body) req f)
+   config')
 
-dispatchRequest :: SharedConfig -> BL.ByteString -> Application
+dispatchRequest :: SharedConfig -> BL.ByteString -> HEyefiM Application
 dispatchRequest config body req f
   | requestMethod req == "POST" &&
     pathInfo req == ["api","soap","eyefilm","v1","upload"] &&

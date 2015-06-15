@@ -2,34 +2,20 @@
 
 module HEyefi.Config where
 
-import HEyefi.Log (logInfo, LogLevel)
-import HEyefi.Constant hiding (configPath)
+import           HEyefi.Types (Config(..), CardConfig, SharedConfig(..), LogLevel(Info), cardMap, uploadDirectory, logLevel)
+import           HEyefi.Log (logInfo)
+import           HEyefi.Constant hiding (configPath)
 
-import Control.Concurrent.STM (TVar, readTVar, newTVar, writeTVar, atomically, retry)
-import Control.Exception (finally, catches, Handler (..))
-import Control.Exception (SomeException (..))
-import Data.Maybe (mapMaybe)
-import Data.HashMap.Strict ()
-import qualified Data.HashMap.Strict as HM
-
-import Data.Text (Text, unpack, pack)
-
-import Data.Configurator (load, Worth (Required), getMap)
-import Data.Configurator.Types (Value, ConfigError (ParseError))
+import           Control.Concurrent.STM (TVar, readTVar, newTVar, writeTVar, atomically, retry)
+import           Control.Exception (SomeException (..))
+import           Control.Exception (finally, catches, Handler (..))
+import           Data.Configurator (load, Worth (Required), getMap)
+import           Data.Configurator.Types (Value, ConfigError (ParseError))
 import qualified Data.Configurator.Types as CT
-
-type MacAddress = Text
-type UploadKey = Text
-
-type CardConfig = HM.HashMap MacAddress UploadKey
-
-data Config = Config {
-  cardMap :: CardConfig,
-  uploadDirectory :: FilePath
-}
-
-type SharedConfig = TVar Config
-
+import           Data.HashMap.Strict ()
+import qualified Data.HashMap.Strict as HM
+import           Data.Maybe (mapMaybe)
+import           Data.Text (Text, unpack, pack)
 
 insertCard :: Text -> Text -> Config -> Config
 insertCard macAddress uploadKey c = do
@@ -121,7 +107,9 @@ reloadConfig globalLogLevel configPath = do
                  return emptyConfig)]
 
 emptyConfig :: Config
-emptyConfig = Config { cardMap = HM.empty, uploadDirectory = ""}
+emptyConfig = Config { cardMap = HM.empty
+                     , uploadDirectory = ""
+                     , logLevel = Info }
 
 newConfig :: IO SharedConfig
 newConfig = atomically (newTVar emptyConfig)
