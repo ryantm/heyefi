@@ -2,10 +2,15 @@
 
 module HEyefi.StartSession where
 
+import HEyefi.Config (getUploadKeyForMacaddress)
 import HEyefi.Hex (unhex)
-import HEyefi.Config (Config, getUploadKeyForMacaddress)
-import HEyefi.Log (logInfo, LogLevel)
+import HEyefi.Log (logInfo)
+import HEyefi.Types (HEyefiM(..))
 
+import Control.Arrow ((>>>))
+import Control.Monad.IO.Class (liftIO)
+import Data.Hash.MD5 (md5s, Str (..))
+import Data.Maybe (fromJust)
 import Text.XML.HXT.Core ( runX
                          , mkelem
                          , spi
@@ -14,24 +19,18 @@ import Text.XML.HXT.Core ( runX
                          , txt
                          , root
                          , writeDocumentToString)
-import Control.Arrow ((>>>))
-import Data.Hash.MD5 (md5s, Str (..))
-import Data.Maybe (fromJust)
-
 
 --TODO: make snonce not hard coded
-startSessionResponse :: LogLevel ->
-                        Config ->
+startSessionResponse :: String ->
                         String ->
                         String ->
                         String ->
-                        String ->
-                        IO String
-startSessionResponse globalLogLevel config macaddress cnonce transfermode transfermodetimestamp = do
-  let upload_key_0 = getUploadKeyForMacaddress config macaddress
+                        HEyefiM String
+startSessionResponse macaddress cnonce transfermode transfermodetimestamp = do
+  upload_key_0 <- getUploadKeyForMacaddress macaddress
   case upload_key_0 of
    Nothing -> do
-     logInfo globalLogLevel ("No upload key found in configuration for macaddress: " ++ macaddress)
+     logInfo ("No upload key found in configuration for macaddress: " ++ macaddress)
      return ""
    Just upload_key_0' -> do
      let credentialString = macaddress ++ cnonce ++ upload_key_0'
@@ -54,5 +53,5 @@ startSessionResponse globalLogLevel config macaddress cnonce transfermode transf
                ]
              ]
            ]
-     result <- runX (document >>> writeDocumentToString [])
+     result <- liftIO (runX (document >>> writeDocumentToString []))
      return (head result)

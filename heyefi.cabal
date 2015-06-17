@@ -43,6 +43,7 @@ executable heyefi
                      , filepath
                      , mtl
                      , transformers
+                     , exceptions
 
 test-suite test-heyefi
   default-language: Haskell2010
@@ -82,3 +83,4 @@ test-suite test-heyefi
                   , filemanip
                   , mtl
                   , transformers
+                  , exceptions

@@ -3,6 +3,7 @@
 module HEyefi.Types where
 
 import           Control.Concurrent.STM (TVar)
+import           Control.Monad.Catch (MonadMask, MonadCatch, MonadThrow)
 import           Control.Monad.IO.Class (MonadIO)
 import           Control.Monad.Reader (ReaderT)
 import           Control.Monad.Reader.Class (MonadReader)
@@ -12,7 +13,7 @@ import           Data.Text (Text)
 --Global Monads
 newtype HEyefiM a = HEyefiM {
   runHeyefi :: ReaderT Config IO a
-  } deriving (Functor, Applicative, Monad, MonadIO, MonadReader Config)
+  } deriving (Functor, Applicative, Monad, MonadIO, MonadReader Config, MonadMask, MonadCatch, MonadThrow)
 
 -- Logging
 data LogLevel = Info | Debug

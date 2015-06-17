@@ -2,14 +2,14 @@
 
 module HEyefi.Config where
 
-import           HEyefi.Types (Config(..), CardConfig, SharedConfig(..), LogLevel(Info), cardMap, uploadDirectory, logLevel, HEyefiM(..))
+import           HEyefi.Types (Config(..), CardConfig, SharedConfig, LogLevel(Info), cardMap, uploadDirectory, logLevel, HEyefiM(..))
 import           HEyefi.Log (logInfo)
 import           HEyefi.Constant hiding (configPath)
 
 import           Control.Concurrent.STM (TVar, readTVar, newTVar, writeTVar, atomically, retry)
-import           Control.Exception (SomeException (..))
-import           Control.Exception (finally, catches, Handler (..))
+import           Control.Monad.Catch (finally, catches, Handler (..), SomeException (..))
 import           Control.Monad.IO.Class (liftIO)
+import           Control.Monad.Reader (ask)
 import           Data.Configurator (load, Worth (Required), getMap)
 import           Data.Configurator.Types (Value, ConfigError (ParseError))
 import qualified Data.Configurator.Types as CT
@@ -22,16 +22,17 @@ insertCard :: Text -> Text -> Config -> Config
 insertCard macAddress uploadKey c = do
   Config {
     cardMap = HM.insert macAddress uploadKey (cardMap c),
-    uploadDirectory = uploadDirectory c
+    uploadDirectory = uploadDirectory c,
+    logLevel = logLevel c
     }
 
 
-waitForWake :: TVar (Maybe Int) -> IO ()
-waitForWake wakeSig = atomically (
+waitForWake :: TVar (Maybe Int) -> HEyefiM ()
+waitForWake wakeSig = liftIO (atomically (
   do state <- readTVar wakeSig
      case state of
       Just _ -> writeTVar wakeSig Nothing
-      Nothing -> retry)
+      Nothing -> retry))
 
 convertCardList :: Value -> Either String [(Text, Text)]
 convertCardList (CT.List innerList) =
@@ -91,7 +92,8 @@ reloadConfig configPath = do
       logInfo "Loaded configuration"
       return Config {
         cardMap = cardConfig,
-        uploadDirectory = uploadDir }
+        uploadDirectory = uploadDir,
+        logLevel = Info }
     )
     [Handler (\(ParseError p msg) -> do
                  logInfo
@@ -118,12 +120,13 @@ newConfig = atomically (newTVar emptyConfig)
 -- upload_dir = "/data/annex/doxie/unsorted"
 monitorConfig :: FilePath -> SharedConfig -> TVar (Maybe Int) -> HEyefiM ()
 monitorConfig configPath sharedConfig wakeSignal =
-  liftIO (finally
+  finally
     (do
         config <- reloadConfig configPath
         liftIO (atomically (writeTVar sharedConfig config)))
-    (waitForWake wakeSignal))
+    (waitForWake wakeSignal)
 
-getUploadKeyForMacaddress :: Config -> String -> Maybe String
-getUploadKeyForMacaddress c mac =
-  (fmap unpack (HM.lookup (pack mac) (cardMap c)))
+getUploadKeyForMacaddress :: String -> HEyefiM (Maybe String)
+getUploadKeyForMacaddress mac = do
+  c <- ask
+  return (fmap unpack (HM.lookup (pack mac) (cardMap c)))
