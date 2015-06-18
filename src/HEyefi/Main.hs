@@ -2,11 +2,12 @@
 
 module Main where
 
+import           HEyefi.Config (monitorConfig, newConfig)
 import           HEyefi.Constant
-import           HEyefi.Log (logInfo, LogLevel(Info))
-import           HEyefi.Config (SharedConfig, monitorConfig, newConfig)
-import           HEyefi.UploadPhoto (handleUpload)
+import           HEyefi.Log (logInfo)
 import           HEyefi.Soap (handleSoapAction, soapAction)
+import           HEyefi.Types (LogLevel(Info), SharedConfig, HEyefiM)
+import           HEyefi.UploadPhoto (handleUpload)
 
 
 import qualified Data.ByteString as B

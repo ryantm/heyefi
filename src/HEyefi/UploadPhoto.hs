@@ -3,18 +3,21 @@
 module HEyefi.UploadPhoto where
 
 import           HEyefi.Constant (multipartBodyBoundary)
-import           HEyefi.Log (logInfo, LogLevel)
+import           HEyefi.Log (logInfo)
 import           HEyefi.Soap (mkResponse)
-import           HEyefi.Config (SharedConfig, uploadDirectory)
+import           HEyefi.Types (uploadDirectory, HEyefiM, HEyefiApplication)
 
 import           Codec.Archive.Tar (extract)
 import           Control.Arrow ((>>>))
-import           Control.Concurrent.STM (atomically, readTVar)
+import           Control.Monad.IO.Class (liftIO)
+import           Control.Monad.Reader (ask)
 import qualified Data.ByteString.Lazy as BL
 import           Network.Multipart ( parseMultipartBody, MultiPart (..), BodyPart (..) )
-import           Network.Wai ( Application )
+import           System.Directory (copyFile, getDirectoryContents)
+import           System.FilePath.Posix ((</>))
 import           System.IO (hClose)
 import           System.IO.Temp (withSystemTempFile, withSystemTempDirectory)
+import           System.Posix.Files (setOwnerAndGroup, fileOwner, fileGroup, getFileStatus, FileStatus)
 import Text.XML.HXT.Core ( runX
                          , mkelem
                          , spi
@@ -23,11 +26,6 @@ import Text.XML.HXT.Core ( runX
                          , txt
                          , root
                          , writeDocumentToString)
-import System.Directory (copyFile, getDirectoryContents)
-import System.FilePath.Posix ((</>))
-import System.Posix.Files (setOwnerAndGroup, fileOwner, fileGroup, getFileStatus, FileStatus)
---import System.FilePath.Find (find, always)
-
 
 copyMatchingOwnership :: FileStatus -> FilePath -> FilePath -> IO ()
 copyMatchingOwnership fs from to = do
@@ -44,7 +42,7 @@ changeOwnershipAndCopy uploadDir extractionDir = do
     processName s n =
       copyMatchingOwnership s (extractionDir </> n) (uploadDir </> n)
 
-uploadPhotoResponse :: IO String
+uploadPhotoResponse :: HEyefiM String
 uploadPhotoResponse = do
   let document =
         root [ ]
@@ -59,16 +57,16 @@ uploadPhotoResponse = do
             ]
           ]
         ]
-  result <- runX (document >>> writeDocumentToString [])
+  result <- liftIO (runX (document >>> writeDocumentToString []))
   return (head result)
 
 -- TODO: handle case where uploaded file has a bad format
 -- TODO: handle case where temp file is not created
-writeTarFile :: SharedConfig -> BL.ByteString -> IO ()
-writeTarFile c file = do
-  config <- atomically (readTVar c)
+writeTarFile :: BL.ByteString -> HEyefiM ()
+writeTarFile file = do
+  config <- ask
   let uploadDir = uploadDirectory config
-  withSystemTempFile "heyefi.tar" (handleFile uploadDir)
+  liftIO (withSystemTempFile "heyefi.tar" (handleFile uploadDir))
   where
     handleFile uploadDir filePath handle = do
       withSystemTempDirectory "heyefi_extracted" (handleDir uploadDir filePath handle)
@@ -78,27 +76,27 @@ writeTarFile c file = do
       extract extractionDir tempFile
       changeOwnershipAndCopy uploadDir extractionDir
 
-handleUpload :: LogLevel -> SharedConfig -> BL.ByteString -> Application
-handleUpload globalLogLevel config body _ f = do
+handleUpload :: BL.ByteString -> HEyefiApplication
+handleUpload body _ f = do
   let MultiPart bodyParts = parseMultipartBody multipartBodyBoundary body
-  logInfo globalLogLevel (show (length bodyParts))
+  logInfo (show (length bodyParts))
   lBP bodyParts
   let (BodyPart _ soapEnvelope) = bodyParts !! 0
   let (BodyPart _ file) = bodyParts !! 1
   let (BodyPart _ digest) = bodyParts !! 2
 
-  writeTarFile config file
+  writeTarFile file
 
-  logInfo globalLogLevel (show soapEnvelope)
-  logInfo globalLogLevel (show digest)
+  logInfo (show soapEnvelope)
+  logInfo (show digest)
   responseBody <- uploadPhotoResponse
-  logInfo globalLogLevel (show responseBody)
+  logInfo (show responseBody)
   r <- mkResponse responseBody
   f r
 
   where
     lBP [] = return ()
     lBP ((BodyPart headers _):xs) = do
-      logInfo globalLogLevel (show headers)
+      logInfo (show headers)
       lBP xs
       return ()
