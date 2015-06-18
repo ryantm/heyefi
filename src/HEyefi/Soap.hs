@@ -6,42 +6,41 @@ module HEyefi.Soap
        , mkResponse )
        where
 
-import HEyefi.Config (SharedConfig)
-import HEyefi.StartSession (startSessionResponse)
-import HEyefi.GetPhotoStatus (getPhotoStatusResponse)
-import HEyefi.Log (logInfo, LogLevel)
-import HEyefi.MarkLastPhotoInRoll (markLastPhotoInRollResponse)
+import           HEyefi.GetPhotoStatus (getPhotoStatusResponse)
+import           HEyefi.Log (logInfo)
+import           HEyefi.MarkLastPhotoInRoll (markLastPhotoInRollResponse)
+import           HEyefi.StartSession (startSessionResponse)
+import           HEyefi.Types (HEyefiM, HEyefiApplication)
 
 
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
 
-import Data.List (find)
-import Data.ByteString.Lazy.UTF8 (toString)
-import Text.HandsomeSoup (css)
-import Control.Arrow ((>>>))
-import Text.XML.HXT.Core ( runX
-                         , readString
-                         , getText
-                         , (/>))
-import Control.Concurrent.STM (atomically, readTVar)
-import Data.Time.Format (formatTime, rfc822DateFormat, defaultTimeLocale)
-import Data.ByteString.UTF8 (fromString)
-import Data.ByteString.Lazy (fromStrict)
+import           Control.Arrow ((>>>))
+import           Control.Monad.IO.Class (liftIO)
+import           Data.ByteString.Lazy (fromStrict)
+import           Data.ByteString.Lazy.UTF8 (toString)
+import           Data.ByteString.UTF8 (fromString)
 import qualified Data.CaseInsensitive as CI
+import           Data.List (find)
+import           Data.Time.Clock (getCurrentTime, UTCTime)
+import           Data.Time.Format (formatTime, rfc822DateFormat, defaultTimeLocale)
+import           Network.HTTP.Types (status200)
 import Network.HTTP.Types.Header (hContentType,
                                   hServer,
                                   hContentLength,
                                   hDate,
                                   Header,
                                   HeaderName)
-import Network.HTTP.Types (status200)
 import Network.Wai ( responseLBS
                    , Request
-                   , Application
                    , Response
                    , requestHeaders )
-import Data.Time.Clock (getCurrentTime, UTCTime)
+import           Text.HandsomeSoup (css)
+import Text.XML.HXT.Core ( runX
+                         , readString
+                         , getText
+                         , (/>))
 
 
 data SoapAction = StartSession
@@ -62,9 +61,9 @@ soapAction req =
    Just (_,sa) -> error ((show sa) ++ " is not a defined SoapAction yet")
    _ -> Nothing
 
-mkResponse :: String -> IO Response
+mkResponse :: String -> HEyefiM Response
 mkResponse responseBody = do
-  t <- getCurrentTime
+  t <- liftIO getCurrentTime
   return (responseLBS
           status200
           (defaultResponseHeaders t (length responseBody))
@@ -80,36 +79,33 @@ defaultResponseHeaders time size =
   , (hServer, "Eye-Fi Agent/2.0.4.0 (Windows XP SP2)")
   , (hContentLength, fromString (show size))]
 
-handleSoapAction :: SoapAction -> LogLevel -> SharedConfig -> BL.ByteString -> Application
-handleSoapAction StartSession globalLogLevel config body _ f = do
-  logInfo globalLogLevel "Got StartSession request"
+handleSoapAction :: SoapAction -> BL.ByteString -> HEyefiApplication
+handleSoapAction StartSession body _ f = do
+  logInfo "Got StartSession request"
   let xmlDocument = readString [] (toString body)
-  let getTagText = \ s -> runX (xmlDocument >>> css s /> getText)
+  let getTagText = \ s -> liftIO (runX (xmlDocument >>> css s /> getText))
   macaddress <- getTagText "macaddress"
   cnonce <- getTagText "cnonce"
   transfermode <- getTagText "transfermode"
   transfermodetimestamp <- getTagText "transfermodetimestamp"
-  logInfo globalLogLevel (show macaddress)
-  logInfo globalLogLevel (show transfermodetimestamp)
-  config' <- atomically (readTVar config)
+  logInfo (show macaddress)
+  logInfo (show transfermodetimestamp)
   responseBody <- (startSessionResponse
-                   globalLogLevel
-                   config'
                    (head macaddress)
                    (head cnonce)
                    (head transfermode)
                    (head transfermodetimestamp))
-  logInfo globalLogLevel (show responseBody)
+  logInfo (show responseBody)
   response <- mkResponse responseBody
   f response
-handleSoapAction GetPhotoStatus globalLogLevel _ _ _ f = do
-  logInfo globalLogLevel "Got GetPhotoStatus request"
+handleSoapAction GetPhotoStatus _ _ f = do
+  logInfo "Got GetPhotoStatus request"
   -- TODO: Check card credential here!
   responseBody <- getPhotoStatusResponse
   response <- mkResponse responseBody
   f response
-handleSoapAction MarkLastPhotoInRoll globalLogLevel _ _ _ f = do
-  logInfo globalLogLevel "Got MarkLastPhotoInRoll request"
+handleSoapAction MarkLastPhotoInRoll _ _ f = do
+  logInfo "Got MarkLastPhotoInRoll request"
   responseBody <- markLastPhotoInRollResponse
   response <- mkResponse responseBody
   f response

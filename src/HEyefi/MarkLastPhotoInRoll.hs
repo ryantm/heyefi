@@ -2,6 +2,10 @@
 
 module HEyefi.MarkLastPhotoInRoll where
 
+import HEyefi.Types (HEyefiM)
+
+import Control.Arrow ((>>>))
+import Control.Monad.IO.Class (liftIO)
 import Text.XML.HXT.Core ( runX
                          , mkelem
                          , spi
@@ -9,9 +13,8 @@ import Text.XML.HXT.Core ( runX
                          , sattr
                          , root
                          , writeDocumentToString)
-import Control.Arrow ((>>>))
 
-markLastPhotoInRollResponse :: IO String
+markLastPhotoInRollResponse :: HEyefiM String
 markLastPhotoInRollResponse = do
   let document =
         root []
@@ -25,5 +28,5 @@ markLastPhotoInRollResponse = do
             ]
           ]
         ]
-  result <- runX (document >>> writeDocumentToString [])
+  result <- liftIO (runX (document >>> writeDocumentToString []))
   return (head result)

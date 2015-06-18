@@ -9,11 +9,14 @@ import           Control.Monad.Reader (ReaderT)
 import           Control.Monad.Reader.Class (MonadReader)
 import qualified Data.HashMap.Strict as HM
 import           Data.Text (Text)
+import           Network.Wai (Request, Response, ResponseReceived)
 
 --Global Monads
 newtype HEyefiM a = HEyefiM {
   runHeyefi :: ReaderT Config IO a
   } deriving (Functor, Applicative, Monad, MonadIO, MonadReader Config, MonadMask, MonadCatch, MonadThrow)
+
+type HEyefiApplication = Request -> (Response -> HEyefiM ResponseReceived) -> HEyefiM ResponseReceived
 
 -- Logging
 data LogLevel = Info | Debug

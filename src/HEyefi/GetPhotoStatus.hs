@@ -2,6 +2,10 @@
 
 module HEyefi.GetPhotoStatus where
 
+import HEyefi.Types (HEyefiM)
+
+import Control.Arrow ((>>>))
+import Control.Monad.IO.Class (liftIO)
 import Text.XML.HXT.Core ( runX
                          , mkelem
                          , spi
@@ -10,9 +14,8 @@ import Text.XML.HXT.Core ( runX
                          , txt
                          , root
                          , writeDocumentToString)
-import Control.Arrow ((>>>))
 
-getPhotoStatusResponse :: IO String
+getPhotoStatusResponse :: HEyefiM String
 getPhotoStatusResponse = do
   let document =
         root []
@@ -28,5 +31,5 @@ getPhotoStatusResponse = do
             ]
           ]
         ]
-  result <- runX (document >>> writeDocumentToString [])
+  result <- liftIO (runX (document >>> writeDocumentToString []))
   return (head result)
