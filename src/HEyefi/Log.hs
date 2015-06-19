@@ -15,6 +15,9 @@ log' ll s = do
                , "[" ++ show ll ++ "]"
                , s])
 
+logInfoIO :: String -> IO ()
+logInfoIO s = log' Info s
+
 logInfo ::  String -> HEyefiM ()
 logInfo s = liftIO (log' Info s)
 

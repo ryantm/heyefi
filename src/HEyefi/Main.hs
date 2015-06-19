@@ -4,12 +4,16 @@ module Main where
 
 import           HEyefi.Config (monitorConfig, newConfig)
 import           HEyefi.Constant
-import           HEyefi.Log (logInfo)
+import           HEyefi.Log (logInfoIO, logInfo)
 import           HEyefi.Soap (handleSoapAction, soapAction)
-import           HEyefi.Types (LogLevel(Info), SharedConfig, HEyefiM)
+import           HEyefi.Types (runHeyefi, SharedConfig, HEyefiApplication)
 import           HEyefi.UploadPhoto (handleUpload)
 
 
+import           Control.Concurrent (forkIO)
+import           Control.Concurrent.STM (newTVar, atomically, writeTVar, TVar, readTVar)
+import           Control.Monad (forever)
+import           Control.Monad.Reader (runReaderT)
 import qualified Data.ByteString as B
 import           Data.ByteString.Lazy (fromStrict)
 import qualified Data.ByteString.Lazy as BL
@@ -21,10 +25,6 @@ import           Network.Wai ( Application
                    , requestMethod
                    , requestHeaders )
 import           Network.Wai.Handler.Warp (run)
-
-import           Control.Monad (forever)
-import           Control.Concurrent (forkIO)
-import           Control.Concurrent.STM (newTVar, atomically, writeTVar, TVar)
 import           System.Posix.Signals (installHandler, sigHUP, Handler( Catch ))
 
 handleHup :: TVar (Maybe Int) -> IO ()
@@ -35,34 +35,39 @@ main = do
   wakeSig <- atomically (newTVar Nothing)
   sharedConfig <- newConfig
   _ <- installHandler sigHUP (Catch $ handleHup wakeSig) Nothing
-  let globalLogLevel = Info
 
-  _ <- forkIO (forever (monitorConfig configPath sharedConfig wakeSig))
+  _ <- forkIO (forever
+               (do
+                   c <- atomically (readTVar sharedConfig)
+                   (runReaderT
+                    (runHeyefi (do
+                        (monitorConfig configPath sharedConfig wakeSig)))
+                    c)))
 
-  logInfo globalLogLevel ("Listening on port " ++ show port)
+  logInfoIO ("Listening on port " ++ show port)
   run port (app sharedConfig)
 
 app :: SharedConfig -> Application
 app config req f = do
   config' <- atomically (readTVar config)
   body <- getWholeRequestBody req
-  (runReaderT (do
+  (runReaderT (runHeyefi (do
                   logInfo (show (pathInfo req))
                   logInfo (show (requestHeaders req))
-                  dispatchRequest config (fromStrict body) req f)
+                  dispatchRequest (fromStrict body) req f))
    config')
 
-dispatchRequest :: SharedConfig -> BL.ByteString -> HEyefiM Application
-dispatchRequest config body req f
+dispatchRequest :: BL.ByteString -> HEyefiApplication
+dispatchRequest body req f
   | requestMethod req == "POST" &&
     pathInfo req == ["api","soap","eyefilm","v1","upload"] &&
     isNothing (soapAction req) =
-      handleUpload config body req f
-dispatchRequest config body req f
+      handleUpload body req f
+dispatchRequest body req f
   | requestMethod req == "POST" &&
     isJust (soapAction req) =
-      handleSoapAction (fromJust (soapAction req)) config body req f
-dispatchRequest _ _ _ _ = error "did not match dispatch"
+      handleSoapAction (fromJust (soapAction req)) body req f
+dispatchRequest _ _ _ = error "did not match dispatch"
 
 getWholeRequestBody :: Request -> IO B.ByteString
 getWholeRequestBody request = do

@@ -92,7 +92,7 @@ handleUpload body _ f = do
   responseBody <- uploadPhotoResponse
   logInfo (show responseBody)
   r <- mkResponse responseBody
-  f r
+  liftIO (f r)
 
   where
     lBP [] = return ()

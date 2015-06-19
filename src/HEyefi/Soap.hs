@@ -97,15 +97,15 @@ handleSoapAction StartSession body _ f = do
                    (head transfermodetimestamp))
   logInfo (show responseBody)
   response <- mkResponse responseBody
-  f response
+  liftIO (f response)
 handleSoapAction GetPhotoStatus _ _ f = do
   logInfo "Got GetPhotoStatus request"
   -- TODO: Check card credential here!
   responseBody <- getPhotoStatusResponse
   response <- mkResponse responseBody
-  f response
+  liftIO (f response)
 handleSoapAction MarkLastPhotoInRoll _ _ f = do
   logInfo "Got MarkLastPhotoInRoll request"
   responseBody <- markLastPhotoInRollResponse
   response <- mkResponse responseBody
-  f response
+  liftIO (f response)
