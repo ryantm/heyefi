@@ -3,19 +3,18 @@
 
 module HEyefi.ConfigSpec where
 
-import Test.Hspec
+import           Test.Hspec
 
-import Control.Exception (catch, SomeException, throwIO)
-import System.IO.Silently (capture)
-import System.FilePath ((</>))
-import System.Directory (getTemporaryDirectory)
+import           HEyefi.Config
+import           HEyefi.Types(cardMap, uploadDirectory, Config)
 
-import HEyefi.Config
-import HEyefi.Log (LogLevel(Info))
-
+import           Control.Exception (catch, SomeException, throwIO)
 import qualified Data.HashMap.Strict as HM
-import System.Directory (removeFile)
-import System.IO.Error (isDoesNotExistError)
+import           System.Directory (getTemporaryDirectory)
+import           System.Directory (removeFile)
+import           System.FilePath ((</>))
+import           System.IO.Error (isDoesNotExistError)
+import           System.IO.Silently (capture)
 
 removeIfExists :: FilePath -> IO ()
 removeIfExists fileName = removeFile fileName `catch` handleExists
@@ -37,7 +36,7 @@ makeAndReloadFile :: String -> IO (String, Config)
 makeAndReloadFile contents = do
   file <- getNonexistentTemporaryFile
   writeFile file contents
-  capture (reloadConfig Info file)
+  capture (runWithEmptyConfig (reloadConfig file))
 
 validConfig :: String
 validConfig = "upload_dir = \"/data/photos\"\ncards = [[\"0012342de4ce\",\"e7403a0123402ca062\"],[\"1234562d5678\",\"12342a062\"]]"
@@ -48,7 +47,7 @@ spec = do
     (it "should report an error for a non-existent configuration file"
      (do
          file <- getNonexistentTemporaryFile
-         (output, config) <- capture (reloadConfig Info file)
+         (output, config) <- capture (runWithEmptyConfig (reloadConfig file))
          (cardMap config) `shouldBe` HM.empty
          output `shouldContain` "Could not find configuration file at " ++ file))
     (it "should report an error for an unparsable configuration file"

@@ -10,6 +10,7 @@ import           Control.Concurrent.STM (TVar, readTVar, newTVar, writeTVar, ato
 import           Control.Monad.Catch (finally, catches, Handler (..), SomeException (..))
 import           Control.Monad.IO.Class (liftIO)
 import           Control.Monad.Reader (ask)
+import           Control.Monad.Reader (runReaderT)
 import           Data.Configurator (load, Worth (Required), getMap)
 import           Data.Configurator.Types (Value, ConfigError (ParseError))
 import qualified Data.Configurator.Types as CT
@@ -106,6 +107,12 @@ reloadConfig configPath = do
                  logInfo
                    ("Could not find configuration file at " ++ configPath)
                  return emptyConfig)]
+
+runWithConfig :: Config -> HEyefiM a -> IO a
+runWithConfig c m = runReaderT (runHeyefi m) c
+
+runWithEmptyConfig :: HEyefiM a -> IO a
+runWithEmptyConfig = runWithConfig emptyConfig
 
 emptyConfig :: Config
 emptyConfig = Config { cardMap = HM.empty
