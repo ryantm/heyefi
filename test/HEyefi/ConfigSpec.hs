@@ -74,8 +74,7 @@ spec = do
          output `shouldContain`"missing a definition for `upload_dir`."))
     (it "should parse cards for a valid configuration"
      (do
-         (output, config) <- makeAndReloadFile validConfig
-         putStrLn output
+         (_, config) <- makeAndReloadFile validConfig
          (uploadDirectory config) `shouldBe` "/data/photos"
          HM.lookup "0012342de4ce" (cardMap config) `shouldBe` (Just "e7403a0123402ca062")
          HM.lookup "1234562d5678" (cardMap config) `shouldBe` (Just "12342a062"))))
