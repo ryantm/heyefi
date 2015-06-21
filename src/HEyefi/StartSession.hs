@@ -8,9 +8,12 @@ import HEyefi.Log (logInfo)
 import HEyefi.Types (HEyefiM(..))
 
 import Control.Arrow ((>>>))
+import Control.Monad (replicateM)
 import Control.Monad.IO.Class (liftIO)
+import Data.Char (intToDigit)
 import Data.Hash.MD5 (md5s, Str (..))
 import Data.Maybe (fromJust)
+import System.Random (randomRIO)
 import Text.XML.HXT.Core ( runX
                          , mkelem
                          , spi
@@ -20,7 +23,12 @@ import Text.XML.HXT.Core ( runX
                          , root
                          , writeDocumentToString)
 
---TODO: make snonce not hard coded
+newServerNonce :: IO String
+newServerNonce =
+  replicateM 32 (do
+                    i <- randomRIO (0, 15)
+                    return (intToDigit i))
+
 startSessionResponse :: String ->
                         String ->
                         String ->
@@ -33,6 +41,7 @@ startSessionResponse macaddress cnonce transfermode transfermodetimestamp = do
      logInfo ("No upload key found in configuration for macaddress: " ++ macaddress)
      return ""
    Just upload_key_0' -> do
+     snonce <- liftIO newServerNonce
      let credentialString = macaddress ++ cnonce ++ upload_key_0'
      let binaryCredentialString = unhex credentialString
      let credential = md5s (Str (fromJust binaryCredentialString))
@@ -45,7 +54,7 @@ startSessionResponse macaddress cnonce transfermode transfermodetimestamp = do
                [ mkelem "StartSessionResponse"
                  [ sattr "xmlns" "http://localhost/api/soap/eyefilm" ]
                  [ mkelem "credential" [] [ txt credential ]
-                 , mkelem "snonce" [] [ txt "bff7fe782919114202d3b601682ba8aa" ]
+                 , mkelem "snonce" [] [ txt snonce ]
                  , mkelem "transfermode" [] [ txt transfermode ]
                  , mkelem "transfermodetimestamp" [] [ txt transfermodetimestamp ]
                  , mkelem "upsyncallowed" [] [ txt "true" ]
