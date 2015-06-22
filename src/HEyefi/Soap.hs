@@ -98,14 +98,26 @@ handleSoapAction StartSession body _ f = do
   logInfo (show responseBody)
   response <- mkResponse responseBody
   liftIO (f response)
-handleSoapAction GetPhotoStatus _ _ f = do
+handleSoapAction GetPhotoStatus body _ f = do
   logInfo "Got GetPhotoStatus request"
-  -- TODO: Check card credential here!
-  responseBody <- getPhotoStatusResponse
-  response <- mkResponse responseBody
-  liftIO (f response)
+  credentialGood <- checkCredential body
+  if credentialGood then do
+    responseBody <- getPhotoStatusResponse
+    response <- mkResponse responseBody
+    liftIO (f response)
+  else
+    logInfo "Invalid credential in GetPhotoStatus request"
 handleSoapAction MarkLastPhotoInRoll _ _ f = do
   logInfo "Got MarkLastPhotoInRoll request"
   responseBody <- markLastPhotoInRollResponse
   response <- mkResponse responseBody
   liftIO (f response)
+
+
+checkCredential BL.ByteString -> HEyefiM Bool
+checkCredential body = do
+  let xmlDocument = readString [] (toString body)
+  let getTagText = \ s -> liftIO (runX (xmlDocument >>> css s /> getText))
+  macaddress <- getTagText "macaddress"
+  credential <- getTagText "credential"
+  snonce <- 
