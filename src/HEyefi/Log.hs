@@ -3,7 +3,7 @@ module HEyefi.Log where
 import HEyefi.Types (HEyefiM, LogLevel(..), logLevel)
 
 import Control.Monad.IO.Class (liftIO)
-import Control.Monad.Reader (ask)
+import Control.Monad.State.Lazy (get)
 import Data.Time.Clock (getCurrentTime)
 import Data.Time.ISO8601 (formatISO8601Millis)
 
@@ -23,7 +23,7 @@ logInfo s = liftIO (log' Info s)
 
 logDebug :: String -> HEyefiM ()
 logDebug s = do
-  config <- ask
+  config <- get
   let ll = logLevel config
   case ll of
    Debug -> liftIO (log' Debug s)

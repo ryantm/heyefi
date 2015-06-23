@@ -5,16 +5,16 @@ module HEyefi.Types where
 import           Control.Concurrent.STM (TVar)
 import           Control.Monad.Catch (MonadMask, MonadCatch, MonadThrow)
 import           Control.Monad.IO.Class (MonadIO)
-import           Control.Monad.Reader (ReaderT)
-import           Control.Monad.Reader.Class (MonadReader)
+import           Control.Monad.State.Lazy (StateT)
+import           Control.Monad.State.Class (MonadState)
 import qualified Data.HashMap.Strict as HM
 import           Data.Text (Text)
 import           Network.Wai (Request, Response, ResponseReceived)
 
 --Global Monads
 newtype HEyefiM a = HEyefiM {
-  runHeyefi :: ReaderT Config IO a
-  } deriving (Functor, Applicative, Monad, MonadIO, MonadReader Config, MonadMask, MonadCatch, MonadThrow)
+  runHeyefi :: StateT Config IO a
+  } deriving (Functor, Applicative, Monad, MonadIO, MonadMask, MonadCatch, MonadThrow, MonadState Config)
 
 type HEyefiApplication = Request -> (Response -> IO ResponseReceived) -> HEyefiM ResponseReceived
 
@@ -31,7 +31,8 @@ type CardConfig = HM.HashMap MacAddress UploadKey
 data Config = Config {
   cardMap :: CardConfig,
   uploadDirectory :: FilePath,
-  logLevel :: LogLevel
+  logLevel :: LogLevel,
+  lastSNonce :: String
 }
 
 type SharedConfig = TVar Config

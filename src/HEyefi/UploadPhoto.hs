@@ -10,7 +10,7 @@ import           HEyefi.Types (uploadDirectory, HEyefiM, HEyefiApplication)
 import           Codec.Archive.Tar (extract)
 import           Control.Arrow ((>>>))
 import           Control.Monad.IO.Class (liftIO)
-import           Control.Monad.Reader (ask)
+import           Control.Monad.State.Lazy (get)
 import qualified Data.ByteString.Lazy as BL
 import           Network.Multipart ( parseMultipartBody, MultiPart (..), BodyPart (..) )
 import           System.Directory (copyFile, getDirectoryContents)
@@ -64,7 +64,7 @@ uploadPhotoResponse = do
 -- TODO: handle case where temp file is not created
 writeTarFile :: BL.ByteString -> HEyefiM ()
 writeTarFile file = do
-  config <- ask
+  config <- get
   let uploadDir = uploadDirectory config
   liftIO (withSystemTempFile "heyefi.tar" (handleFile uploadDir))
   where

@@ -9,8 +9,8 @@ import           HEyefi.Constant hiding (configPath)
 import           Control.Concurrent.STM (TVar, readTVar, newTVar, writeTVar, atomically, retry)
 import           Control.Monad.Catch (finally, catches, Handler (..), SomeException (..))
 import           Control.Monad.IO.Class (liftIO)
-import           Control.Monad.Reader (ask)
-import           Control.Monad.Reader (runReaderT)
+import           Control.Monad.State.Lazy (get)
+import           Control.Monad.State.Lazy (runStateT)
 import           Data.Configurator (load, Worth (Required), getMap)
 import           Data.Configurator.Types (Value, ConfigError (ParseError))
 import qualified Data.Configurator.Types as CT
@@ -24,7 +24,8 @@ insertCard macAddress uploadKey c = do
   Config {
     cardMap = HM.insert macAddress uploadKey (cardMap c),
     uploadDirectory = uploadDirectory c,
-    logLevel = logLevel c
+    logLevel = logLevel c,
+    lastSNonce = lastSNonce c
     }
 
 
@@ -94,7 +95,8 @@ reloadConfig configPath = do
       return Config {
         cardMap = cardConfig,
         uploadDirectory = uploadDir,
-        logLevel = Info }
+        logLevel = Info,
+        lastSNonce = "" } -- TODO: Careful, we might be erasing something here.
     )
     [Handler (\(ParseError p msg) -> do
                  logInfo
@@ -108,16 +110,17 @@ reloadConfig configPath = do
                    ("Could not find configuration file at " ++ configPath)
                  return emptyConfig)]
 
-runWithConfig :: Config -> HEyefiM a -> IO a
-runWithConfig c m = runReaderT (runHeyefi m) c
+runWithConfig :: Config -> HEyefiM a -> IO (a,Config)
+runWithConfig c m = runStateT (runHeyefi m) c
 
-runWithEmptyConfig :: HEyefiM a -> IO a
+runWithEmptyConfig :: HEyefiM a -> IO (a,Config)
 runWithEmptyConfig = runWithConfig emptyConfig
 
 emptyConfig :: Config
 emptyConfig = Config { cardMap = HM.empty
                      , uploadDirectory = ""
-                     , logLevel = Info }
+                     , logLevel = Info
+                     , lastSNonce = ""}
 
 newConfig :: IO SharedConfig
 newConfig = atomically (newTVar emptyConfig)
@@ -135,5 +138,5 @@ monitorConfig configPath sharedConfig wakeSignal =
 
 getUploadKeyForMacaddress :: String -> HEyefiM (Maybe String)
 getUploadKeyForMacaddress mac = do
-  c <- ask
+  c <- get
   return (fmap unpack (HM.lookup (pack mac) (cardMap c)))

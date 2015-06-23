@@ -42,7 +42,6 @@ startSessionResponse macaddress cnonce transfermode transfermodetimestamp = do
      return ""
    Just upload_key_0' -> do
      snonce <- liftIO newServerNonce
-     liftIO (atomically (writeTVar 
      let credentialString = macaddress ++ cnonce ++ upload_key_0'
      let binaryCredentialString = unhex credentialString
      let credential = md5s (Str (fromJust binaryCredentialString))

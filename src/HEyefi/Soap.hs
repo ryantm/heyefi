@@ -6,11 +6,13 @@ module HEyefi.Soap
        , mkResponse )
        where
 
+import           HEyefi.Config (getUploadKeyForMacaddress)
 import           HEyefi.GetPhotoStatus (getPhotoStatusResponse)
+import           HEyefi.Hex (unhex)
 import           HEyefi.Log (logInfo)
 import           HEyefi.MarkLastPhotoInRoll (markLastPhotoInRollResponse)
 import           HEyefi.StartSession (startSessionResponse)
-import           HEyefi.Types (HEyefiM, HEyefiApplication)
+import           HEyefi.Types (HEyefiM, HEyefiApplication, lastSNonce)
 
 
 import qualified Data.ByteString as B
@@ -18,14 +20,17 @@ import qualified Data.ByteString.Lazy as BL
 
 import           Control.Arrow ((>>>))
 import           Control.Monad.IO.Class (liftIO)
+import           Control.Monad.State.Lazy (get)
 import           Data.ByteString.Lazy (fromStrict)
 import           Data.ByteString.Lazy.UTF8 (toString)
 import           Data.ByteString.UTF8 (fromString)
 import qualified Data.CaseInsensitive as CI
+import           Data.Hash.MD5 (md5s, Str (..))
 import           Data.List (find)
+import           Data.Maybe (fromJust)
 import           Data.Time.Clock (getCurrentTime, UTCTime)
 import           Data.Time.Format (formatTime, rfc822DateFormat, defaultTimeLocale)
-import           Network.HTTP.Types (status200)
+import           Network.HTTP.Types (status200, unauthorized401)
 import Network.HTTP.Types.Header (hContentType,
                                   hServer,
                                   hContentLength,
@@ -69,6 +74,9 @@ mkResponse responseBody = do
           (defaultResponseHeaders t (length responseBody))
           (fromStrict (fromString responseBody)))
 
+mkUnauthorizedResponse :: Response
+mkUnauthorizedResponse = responseLBS unauthorized401 [] ""
+
 defaultResponseHeaders :: UTCTime ->
                           Int ->
                           [(HeaderName, B.ByteString)]
@@ -105,8 +113,9 @@ handleSoapAction GetPhotoStatus body _ f = do
     responseBody <- getPhotoStatusResponse
     response <- mkResponse responseBody
     liftIO (f response)
-  else
+  else do
     logInfo "Invalid credential in GetPhotoStatus request"
+    liftIO (f mkUnauthorizedResponse)
 handleSoapAction MarkLastPhotoInRoll _ _ f = do
   logInfo "Got MarkLastPhotoInRoll request"
   responseBody <- markLastPhotoInRollResponse
@@ -114,10 +123,24 @@ handleSoapAction MarkLastPhotoInRoll _ _ f = do
   liftIO (f response)
 
 
-checkCredential BL.ByteString -> HEyefiM Bool
+checkCredential :: BL.ByteString -> HEyefiM Bool
 checkCredential body = do
   let xmlDocument = readString [] (toString body)
   let getTagText = \ s -> liftIO (runX (xmlDocument >>> css s /> getText))
   macaddress <- getTagText "macaddress"
   credential <- getTagText "credential"
-  snonce <- 
+  state <- get
+  let snonce = lastSNonce state
+
+  upload_key_0 <- getUploadKeyForMacaddress (head macaddress)
+  case upload_key_0 of
+   Nothing -> do
+     logInfo ("No upload key found in configuration for macaddress: " ++ (head macaddress))
+     return False
+   Just upload_key_0' -> do
+     let credentialString = (head macaddress) ++ upload_key_0' ++ snonce
+     let binaryCredentialString = unhex credentialString
+     let expectedCredential = md5s (Str (fromJust binaryCredentialString))
+     logInfo ("actual: " ++ (head credential))
+     logInfo ("expected: " ++ expectedCredential)
+     return ((head credential) == expectedCredential)
