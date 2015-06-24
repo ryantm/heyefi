@@ -36,7 +36,9 @@ makeAndReloadFile :: String -> IO (String, Config)
 makeAndReloadFile contents = do
   file <- getNonexistentTemporaryFile
   writeFile file contents
-  capture (runWithEmptyConfig (reloadConfig file))
+  capture (do
+              r <- runWithEmptyConfig (reloadConfig file)
+              return (fst r))
 
 validConfig :: String
 validConfig = "upload_dir = \"/data/photos\"\ncards = [[\"0012342de4ce\",\"e7403a0123402ca062\"],[\"1234562d5678\",\"12342a062\"]]"
@@ -47,7 +49,10 @@ spec = do
     (it "should report an error for a non-existent configuration file"
      (do
          file <- getNonexistentTemporaryFile
-         (output, config) <- capture (runWithEmptyConfig (reloadConfig file))
+         (output, config) <- capture (
+           do
+             r <- runWithEmptyConfig (reloadConfig file)
+             return (fst r))
          (cardMap config) `shouldBe` HM.empty
          output `shouldContain` "Could not find configuration file at " ++ file))
     (it "should report an error for an unparsable configuration file"
