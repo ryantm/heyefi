@@ -9,8 +9,7 @@ import           HEyefi.Constant hiding (configPath)
 import           Control.Concurrent.STM (TVar, readTVar, newTVar, writeTVar, atomically, retry)
 import           Control.Monad.Catch (finally, catches, Handler (..), SomeException (..))
 import           Control.Monad.IO.Class (liftIO)
-import           Control.Monad.State.Lazy (get)
-import           Control.Monad.State.Lazy (runStateT)
+import           Control.Monad.State.Lazy (get, put, runStateT)
 import           Data.Configurator (load, Worth (Required), getMap)
 import           Data.Configurator.Types (Value, ConfigError (ParseError))
 import qualified Data.Configurator.Types as CT
@@ -140,3 +139,13 @@ getUploadKeyForMacaddress :: String -> HEyefiM (Maybe String)
 getUploadKeyForMacaddress mac = do
   c <- get
   return (fmap unpack (HM.lookup (pack mac) (cardMap c)))
+
+putSNonce :: String -> HEyefiM ()
+putSNonce snonce = do
+  c <- get
+  put (Config {
+          cardMap = cardMap c,
+          uploadDirectory = uploadDirectory c,
+          logLevel = logLevel c,
+          lastSNonce = snonce
+          })

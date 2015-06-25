@@ -2,7 +2,7 @@
 
 module HEyefi.StartSession where
 
-import HEyefi.Config (getUploadKeyForMacaddress)
+import HEyefi.Config (getUploadKeyForMacaddress, putSNonce)
 import HEyefi.Hex (unhex)
 import HEyefi.Log (logInfo)
 import HEyefi.Types (HEyefiM(..))
@@ -42,6 +42,7 @@ startSessionResponse macaddress cnonce transfermode transfermodetimestamp = do
      return ""
    Just upload_key_0' -> do
      snonce <- liftIO newServerNonce
+     putSNonce snonce
      let credentialString = macaddress ++ cnonce ++ upload_key_0'
      let binaryCredentialString = unhex credentialString
      let credential = md5s (Str (fromJust binaryCredentialString))

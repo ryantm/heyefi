@@ -131,7 +131,6 @@ checkCredential body = do
   credential <- getTagText "credential"
   state <- get
   let snonce = lastSNonce state
-
   upload_key_0 <- getUploadKeyForMacaddress (head macaddress)
   case upload_key_0 of
    Nothing -> do
@@ -141,6 +140,7 @@ checkCredential body = do
      let credentialString = (head macaddress) ++ upload_key_0' ++ snonce
      let binaryCredentialString = unhex credentialString
      let expectedCredential = md5s (Str (fromJust binaryCredentialString))
+     logInfo ("snonce: " ++ snonce)
      logInfo ("actual: " ++ (head credential))
      logInfo ("expected: " ++ expectedCredential)
      return ((head credential) == expectedCredential)
