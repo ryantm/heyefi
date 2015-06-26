@@ -9,7 +9,7 @@ module HEyefi.Soap
 import           HEyefi.Config (getUploadKeyForMacaddress)
 import           HEyefi.GetPhotoStatus (getPhotoStatusResponse)
 import           HEyefi.Hex (unhex)
-import           HEyefi.Log (logInfo)
+import           HEyefi.Log (logInfo, logDebug)
 import           HEyefi.MarkLastPhotoInRoll (markLastPhotoInRollResponse)
 import           HEyefi.StartSession (startSessionResponse)
 import           HEyefi.Types (HEyefiM, HEyefiApplication, lastSNonce)
@@ -96,14 +96,14 @@ handleSoapAction StartSession body _ f = do
   cnonce <- getTagText "cnonce"
   transfermode <- getTagText "transfermode"
   transfermodetimestamp <- getTagText "transfermodetimestamp"
-  logInfo (show macaddress)
-  logInfo (show transfermodetimestamp)
+  logDebug (show macaddress)
+  logDebug (show transfermodetimestamp)
   responseBody <- (startSessionResponse
                    (head macaddress)
                    (head cnonce)
                    (head transfermode)
                    (head transfermodetimestamp))
-  logInfo (show responseBody)
+  logDebug (show responseBody)
   response <- mkResponse responseBody
   liftIO (f response)
 handleSoapAction GetPhotoStatus body _ f = do

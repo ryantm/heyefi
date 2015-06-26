@@ -4,7 +4,7 @@ module Main where
 
 import           HEyefi.Config (monitorConfig, newConfig, runWithConfig)
 import           HEyefi.Constant
-import           HEyefi.Log (logInfoIO, logInfo)
+import           HEyefi.Log (logInfoIO, logDebug)
 import           HEyefi.Soap (handleSoapAction, soapAction)
 import           HEyefi.Types (SharedConfig, HEyefiApplication)
 import           HEyefi.UploadPhoto (handleUpload)
@@ -50,8 +50,8 @@ app sharedConfig req f = do
   config <- atomically (readTVar sharedConfig)
   body <- getWholeRequestBody req
   (result, config') <- (runWithConfig config (do
-                  logInfo (show (pathInfo req))
-                  logInfo (show (requestHeaders req))
+                  logDebug (show (pathInfo req))
+                  logDebug (show (requestHeaders req))
                   dispatchRequest (fromStrict body) req f))
   atomically (writeTVar sharedConfig config')
   return result

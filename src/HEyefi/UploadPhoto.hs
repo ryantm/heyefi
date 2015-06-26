@@ -3,7 +3,7 @@
 module HEyefi.UploadPhoto where
 
 import           HEyefi.Constant (multipartBodyBoundary)
-import           HEyefi.Log (logInfo)
+import           HEyefi.Log (logDebug, logInfo)
 import           HEyefi.Soap (mkResponse)
 import           HEyefi.Types (uploadDirectory, HEyefiM, HEyefiApplication)
 
@@ -27,16 +27,18 @@ import Text.XML.HXT.Core ( runX
                          , root
                          , writeDocumentToString)
 
-copyMatchingOwnership :: FileStatus -> FilePath -> FilePath -> IO ()
+copyMatchingOwnership :: FileStatus -> FilePath -> FilePath -> IO (FilePath)
 copyMatchingOwnership fs from to = do
   setOwnerAndGroup from (fileOwner fs) (fileGroup fs)
   copyFile from to
+  return to
 
-changeOwnershipAndCopy :: FilePath -> FilePath -> IO ()
+changeOwnershipAndCopy :: FilePath -> FilePath -> IO (FilePath)
 changeOwnershipAndCopy uploadDir extractionDir = do
   s <- getFileStatus uploadDir
   names <- getDirectoryContents extractionDir
-  mapM_ (processName s) (properNames names)
+  paths <- mapM (processName s) (properNames names)
+  return (head paths)
   where
     properNames = filter (`notElem` [".", ".."])
     processName s n =
@@ -62,7 +64,7 @@ uploadPhotoResponse = do
 
 -- TODO: handle case where uploaded file has a bad format
 -- TODO: handle case where temp file is not created
-writeTarFile :: BL.ByteString -> HEyefiM ()
+writeTarFile :: BL.ByteString -> HEyefiM (FilePath)
 writeTarFile file = do
   config <- get
   let uploadDir = uploadDirectory config
@@ -78,25 +80,27 @@ writeTarFile file = do
 
 handleUpload :: BL.ByteString -> HEyefiApplication
 handleUpload body _ f = do
+  logInfo "Got Upload request"
   let MultiPart bodyParts = parseMultipartBody multipartBodyBoundary body
-  logInfo (show (length bodyParts))
+  logDebug (show (length bodyParts))
   lBP bodyParts
   let (BodyPart _ soapEnvelope) = bodyParts !! 0
   let (BodyPart _ file) = bodyParts !! 1
   let (BodyPart _ digest) = bodyParts !! 2
 
-  writeTarFile file
+  outputPath <- writeTarFile file
+  logInfo ("Uploaded to " ++ outputPath)
 
-  logInfo (show soapEnvelope)
-  logInfo (show digest)
+  logDebug (show soapEnvelope)
+  logDebug (show digest)
   responseBody <- uploadPhotoResponse
-  logInfo (show responseBody)
+  logDebug (show responseBody)
   r <- mkResponse responseBody
   liftIO (f r)
 
   where
     lBP [] = return ()
     lBP ((BodyPart headers _):xs) = do
-      logInfo (show headers)
+      logDebug (show headers)
       lBP xs
       return ()
