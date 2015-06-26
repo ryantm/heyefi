@@ -114,7 +114,6 @@ handleSoapAction GetPhotoStatus body _ f = do
     response <- mkResponse responseBody
     liftIO (f response)
   else do
-    logInfo "Invalid credential in GetPhotoStatus request"
     liftIO (f mkUnauthorizedResponse)
 handleSoapAction MarkLastPhotoInRoll _ _ f = do
   logInfo "Got MarkLastPhotoInRoll request"
@@ -140,7 +139,9 @@ checkCredential body = do
      let credentialString = (head macaddress) ++ upload_key_0' ++ snonce
      let binaryCredentialString = unhex credentialString
      let expectedCredential = md5s (Str (fromJust binaryCredentialString))
-     logInfo ("snonce: " ++ snonce)
-     logInfo ("actual: " ++ (head credential))
-     logInfo ("expected: " ++ expectedCredential)
-     return ((head credential) == expectedCredential)
+     if ((head credential) /= expectedCredential) then do
+       logInfo ("Invalid credential in GetPhotoStatus request. Expected: "
+                ++ expectedCredential ++ " Actual: " ++ (head credential))
+       return False
+     else
+       return True
