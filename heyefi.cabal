@@ -20,7 +20,7 @@ executable heyefi
   hs-source-dirs:      src
   main-is:             HEyefi/Main.hs
   ghc-options:         -Wall
-  build-depends:       base
+  build-depends:       base >=4 && <=5
                      , stm
                      , unix
                      , MissingH
@@ -57,7 +57,7 @@ test-suite test-heyefi
   hs-source-dirs:   test, src
   main-is:          Spec.hs
   ghc-options:      -Wall
-  build-depends:    base
+  build-depends:    base >=4 && <=5
                   , stm
                   , unix
                   , containers
