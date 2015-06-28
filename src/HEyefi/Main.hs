@@ -3,7 +3,7 @@
 module Main where
 
 import           HEyefi.Config (monitorConfig, newConfig, runWithConfig)
-import           HEyefi.Constant
+import           HEyefi.Constant (port, configPath)
 import           HEyefi.Log (logInfoIO, logDebug)
 import           HEyefi.Soap (handleSoapAction, soapAction)
 import           HEyefi.Types (SharedConfig, HEyefiApplication)
