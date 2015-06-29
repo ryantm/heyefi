@@ -11,7 +11,8 @@ import           HEyefi.UploadPhoto (handleUpload)
 
 
 import           Control.Concurrent (forkIO)
-import           Control.Concurrent.STM (newTVar, atomically, writeTVar, TVar, readTVar)
+import           Control.Concurrent.STM (
+  newTVar, atomically, writeTVar, TVar, readTVar )
 import           Control.Monad (forever)
 import qualified Data.ByteString as B
 import           Data.ByteString.Lazy (fromStrict)
