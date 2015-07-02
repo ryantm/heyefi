@@ -19,7 +19,7 @@ import           Data.Maybe (mapMaybe)
 import           Data.Text (Text, unpack, pack)
 
 insertCard :: Text -> Text -> Config -> Config
-insertCard macAddress uploadKey c = do
+insertCard macAddress uploadKey c =
   Config {
     cardMap = HM.insert macAddress uploadKey (cardMap c),
     uploadDirectory = uploadDirectory c,
