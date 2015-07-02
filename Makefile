@@ -20,3 +20,8 @@ shell :
 .PHONY : testv
 testv :
 	cabal exec -- runhaskell -Wall -Werror -fno-warn-orphans -isrc -itest test/Spec.hs
+
+.PHONY : hlint
+hlint :
+	rm -f report.html
+	cabal exec -- hlint lint src test --report

@@ -3,7 +3,7 @@
 , http-types, hxt, iso8601-time, MissingH, multipart, old-locale
 , silently, stdenv, stm, tar, text, time, unix, errors_2_0_0
 , unordered-containers, utf8-string, wai, warp, ghc, cabal-install
-, temporary, filemanip, mtl, transformers, exceptions, random
+, temporary, filemanip, mtl, transformers, exceptions, random, hlint
 }:
 mkDerivation {
   pname = "heyefi";
@@ -11,7 +11,7 @@ mkDerivation {
   src = ./.;
   isLibrary = false;
   isExecutable = true;
-  buildTools = [ ghc cabal-install ];
+  buildTools = [ ghc cabal-install hlint];
   buildDepends = [
     base bytestring case-insensitive configurator HandsomeSoup HTTP
     http-types hxt iso8601-time MissingH multipart old-locale stm tar
