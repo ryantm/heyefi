@@ -27,13 +27,13 @@ import Text.XML.HXT.Core ( runX
                          , root
                          , writeDocumentToString)
 
-copyMatchingOwnership :: FileStatus -> FilePath -> FilePath -> IO (FilePath)
+copyMatchingOwnership :: FileStatus -> FilePath -> FilePath -> IO FilePath
 copyMatchingOwnership fs from to = do
   setOwnerAndGroup from (fileOwner fs) (fileGroup fs)
   copyFile from to
   return to
 
-changeOwnershipAndCopy :: FilePath -> FilePath -> IO (FilePath)
+changeOwnershipAndCopy :: FilePath -> FilePath -> IO FilePath
 changeOwnershipAndCopy uploadDir extractionDir = do
   s <- getFileStatus uploadDir
   names <- getDirectoryContents extractionDir
@@ -64,13 +64,13 @@ uploadPhotoResponse = do
 
 -- TODO: handle case where uploaded file has a bad format
 -- TODO: handle case where temp file is not created
-writeTarFile :: BL.ByteString -> HEyefiM (FilePath)
+writeTarFile :: BL.ByteString -> HEyefiM FilePath
 writeTarFile file = do
   config <- get
   let uploadDir = uploadDirectory config
   liftIO (withSystemTempFile "heyefi.tar" (handleFile uploadDir))
   where
-    handleFile uploadDir filePath handle = do
+    handleFile uploadDir filePath handle =
       withSystemTempDirectory "heyefi_extracted" (handleDir uploadDir filePath handle)
     handleDir uploadDir tempFile tempFileHandle extractionDir = do
       BL.hPut tempFileHandle file
@@ -84,7 +84,7 @@ handleUpload body _ f = do
   let MultiPart bodyParts = parseMultipartBody multipartBodyBoundary body
   logDebug (show (length bodyParts))
   lBP bodyParts
-  let (BodyPart _ soapEnvelope) = bodyParts !! 0
+  let (BodyPart _ soapEnvelope) = head bodyParts
   let (BodyPart _ file) = bodyParts !! 1
   let (BodyPart _ digest) = bodyParts !! 2
 
@@ -100,7 +100,7 @@ handleUpload body _ f = do
 
   where
     lBP [] = return ()
-    lBP ((BodyPart headers _):xs) = do
+    lBP (BodyPart headers _ : xs) = do
       logDebug (show headers)
       lBP xs
       return ()

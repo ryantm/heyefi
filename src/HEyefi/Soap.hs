@@ -139,9 +139,9 @@ checkCredential body = do
      let credentialString = (head macaddress) ++ upload_key_0' ++ snonce
      let binaryCredentialString = unhex credentialString
      let expectedCredential = md5s (Str (fromJust binaryCredentialString))
-     if ((head credential) /= expectedCredential) then do
+     if (head credential /= expectedCredential) then do
        logInfo ("Invalid credential in GetPhotoStatus request. Expected: "
-                ++ expectedCredential ++ " Actual: " ++ (head credential))
+                ++ expectedCredential ++ " Actual: " ++ head credential)
        return False
      else
        return True
