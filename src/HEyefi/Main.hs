@@ -40,8 +40,7 @@ main = do
                (do
                    c <- atomically (readTVar sharedConfig)
                    runWithConfig c (
-                     do
-                       (monitorConfig configPath sharedConfig wakeSig))))
+                     monitorConfig configPath sharedConfig wakeSig)))
 
   logInfoIO ("Listening on port " ++ show port)
   run port (app sharedConfig)
@@ -50,10 +49,10 @@ app :: SharedConfig -> Application
 app sharedConfig req f = do
   config <- atomically (readTVar sharedConfig)
   body <- getWholeRequestBody req
-  (result, config') <- (runWithConfig config (do
+  (result, config') <- runWithConfig config (do
                   logDebug (show (pathInfo req))
                   logDebug (show (requestHeaders req))
-                  dispatchRequest (fromStrict body) req f))
+                  dispatchRequest (fromStrict body) req f)
   atomically (writeTVar sharedConfig config')
   return result
 

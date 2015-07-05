@@ -16,7 +16,7 @@ log' ll s = do
                , s])
 
 logInfoIO :: String -> IO ()
-logInfoIO s = log' Info s
+logInfoIO = log' Info
 
 logInfo ::  String -> HEyefiM ()
 logInfo s = liftIO (log' Info s)

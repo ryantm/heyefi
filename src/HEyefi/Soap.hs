@@ -63,7 +63,7 @@ soapAction req =
    Just (_,"\"urn:StartSession\"") -> Just StartSession
    Just (_,"\"urn:GetPhotoStatus\"") -> Just GetPhotoStatus
    Just (_,"\"urn:MarkLastPhotoInRoll\"") -> Just MarkLastPhotoInRoll
-   Just (_,sa) -> error ((show sa) ++ " is not a defined SoapAction yet")
+   Just (_,sa) -> error (show sa ++ " is not a defined SoapAction yet")
    _ -> Nothing
 
 mkResponse :: String -> HEyefiM Response
@@ -91,18 +91,18 @@ handleSoapAction :: SoapAction -> BL.ByteString -> HEyefiApplication
 handleSoapAction StartSession body _ f = do
   logInfo "Got StartSession request"
   let xmlDocument = readString [] (toString body)
-  let getTagText = \ s -> liftIO (runX (xmlDocument >>> css s /> getText))
+  let getTagText s = liftIO (runX (xmlDocument >>> css s /> getText))
   macaddress <- getTagText "macaddress"
   cnonce <- getTagText "cnonce"
   transfermode <- getTagText "transfermode"
   transfermodetimestamp <- getTagText "transfermodetimestamp"
   logDebug (show macaddress)
   logDebug (show transfermodetimestamp)
-  responseBody <- (startSessionResponse
+  responseBody <- startSessionResponse
                    (head macaddress)
                    (head cnonce)
                    (head transfermode)
-                   (head transfermodetimestamp))
+                   (head transfermodetimestamp)
   logDebug (show responseBody)
   response <- mkResponse responseBody
   liftIO (f response)
@@ -113,7 +113,7 @@ handleSoapAction GetPhotoStatus body _ f = do
     responseBody <- getPhotoStatusResponse
     response <- mkResponse responseBody
     liftIO (f response)
-  else do
+  else
     liftIO (f mkUnauthorizedResponse)
 handleSoapAction MarkLastPhotoInRoll _ _ f = do
   logInfo "Got MarkLastPhotoInRoll request"
@@ -125,7 +125,7 @@ handleSoapAction MarkLastPhotoInRoll _ _ f = do
 checkCredential :: BL.ByteString -> HEyefiM Bool
 checkCredential body = do
   let xmlDocument = readString [] (toString body)
-  let getTagText = \ s -> liftIO (runX (xmlDocument >>> css s /> getText))
+  let getTagText s = liftIO (runX (xmlDocument >>> css s /> getText))
   macaddress <- getTagText "macaddress"
   credential <- getTagText "credential"
   state <- get
@@ -133,13 +133,13 @@ checkCredential body = do
   upload_key_0 <- getUploadKeyForMacaddress (head macaddress)
   case upload_key_0 of
    Nothing -> do
-     logInfo ("No upload key found in configuration for macaddress: " ++ (head macaddress))
+     logInfo ("No upload key found in configuration for macaddress: " ++ head macaddress)
      return False
    Just upload_key_0' -> do
-     let credentialString = (head macaddress) ++ upload_key_0' ++ snonce
+     let credentialString = head macaddress ++ upload_key_0' ++ snonce
      let binaryCredentialString = unhex credentialString
      let expectedCredential = md5s (Str (fromJust binaryCredentialString))
-     if (head credential /= expectedCredential) then do
+     if head credential /= expectedCredential then do
        logInfo ("Invalid credential in GetPhotoStatus request. Expected: "
                 ++ expectedCredential ++ " Actual: " ++ head credential)
        return False

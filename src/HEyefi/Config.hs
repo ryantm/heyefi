@@ -52,7 +52,7 @@ getCardConfig configMap = do
    Nothing -> do
      logInfo missingCardsDefinition
      return HM.empty
-   Just l -> do
+   Just l ->
      case convertCardList l of
       Left msg -> do
         logInfo msg
@@ -73,7 +73,7 @@ getUploadDirectory configMap = do
    Nothing -> do
      logInfo missingUploadDirDefinition
      return ""
-   Just uD -> do
+   Just uD ->
      case convertUploadDirectory uD of
       Left msg -> do
         logInfo msg
@@ -143,9 +143,9 @@ getUploadKeyForMacaddress mac = do
 putSNonce :: String -> HEyefiM ()
 putSNonce snonce = do
   c <- get
-  put (Config {
+  put Config {
           cardMap = cardMap c,
           uploadDirectory = uploadDirectory c,
           logLevel = logLevel c,
           lastSNonce = snonce
-          })
+          }
