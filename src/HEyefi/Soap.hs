@@ -19,7 +19,8 @@ import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
 
 import           Control.Arrow ((>>>))
-import           Control.Monad.IO.Class (liftIO)
+import           Control.Arrow.IOStateListArrow (IOSLA)
+import           Control.Monad.IO.Class (liftIO, MonadIO)
 import           Control.Monad.State.Lazy (get)
 import           Data.ByteString.Lazy (fromStrict)
 import           Data.ByteString.Lazy.UTF8 (toString)
@@ -30,6 +31,7 @@ import           Data.List (find)
 import           Data.Maybe (fromJust)
 import           Data.Time.Clock (getCurrentTime, UTCTime)
 import           Data.Time.Format (formatTime, rfc822DateFormat, defaultTimeLocale)
+import           Data.Tree.NTree.TypeDefs (NTree)
 import           Network.HTTP.Types (status200, unauthorized401)
 import Network.HTTP.Types.Header (hContentType,
                                   hServer,
@@ -42,11 +44,12 @@ import Network.Wai ( responseLBS
                    , Response
                    , requestHeaders )
 import           Text.HandsomeSoup (css)
+import           Text.XML.HXT.Arrow.XmlState.TypeDefs (XIOState)
 import Text.XML.HXT.Core ( runX
                          , readString
                          , getText
                          , (/>))
-
+import           Text.XML.HXT.DOM.TypeDefs (XNode, XmlTree)
 
 data SoapAction = StartSession
                 | GetPhotoStatus
@@ -87,6 +90,14 @@ defaultResponseHeaders time size =
   , (hServer, "Eye-Fi Agent/2.0.4.0 (Windows XP SP2)")
   , (hContentLength, fromString (show size))]
 
+
+getTagText :: Control.Monad.IO.Class.MonadIO m =>
+              Control.Arrow.IOStateListArrow.IOSLA
+              (Text.XML.HXT.Arrow.XmlState.TypeDefs.XIOState ())
+              Text.XML.HXT.DOM.TypeDefs.XmlTree
+              (Data.Tree.NTree.TypeDefs.NTree Text.XML.HXT.DOM.TypeDefs.XNode)
+           -> String
+           -> m [String]
 getTagText xmlDocument s = liftIO (runX (xmlDocument >>> css s /> getText))
 
 handleSoapAction :: SoapAction -> BL.ByteString -> HEyefiApplication
