@@ -87,15 +87,16 @@ defaultResponseHeaders time size =
   , (hServer, "Eye-Fi Agent/2.0.4.0 (Windows XP SP2)")
   , (hContentLength, fromString (show size))]
 
+getTagText xmlDocument s = liftIO (runX (xmlDocument >>> css s /> getText))
+
 handleSoapAction :: SoapAction -> BL.ByteString -> HEyefiApplication
 handleSoapAction StartSession body _ f = do
   logInfo "Got StartSession request"
   let xmlDocument = readString [] (toString body)
-  let getTagText s = liftIO (runX (xmlDocument >>> css s /> getText))
-  macaddress <- getTagText "macaddress"
-  cnonce <- getTagText "cnonce"
-  transfermode <- getTagText "transfermode"
-  transfermodetimestamp <- getTagText "transfermodetimestamp"
+  macaddress <- getTagText xmlDocument "macaddress"
+  cnonce <- getTagText  xmlDocument "cnonce"
+  transfermode <- getTagText  xmlDocument "transfermode"
+  transfermodetimestamp <- getTagText  xmlDocument "transfermodetimestamp"
   logDebug (show macaddress)
   logDebug (show transfermodetimestamp)
   responseBody <- startSessionResponse
@@ -125,9 +126,8 @@ handleSoapAction MarkLastPhotoInRoll _ _ f = do
 checkCredential :: BL.ByteString -> HEyefiM Bool
 checkCredential body = do
   let xmlDocument = readString [] (toString body)
-  let getTagText s = liftIO (runX (xmlDocument >>> css s /> getText))
-  macaddress <- getTagText "macaddress"
-  credential <- getTagText "credential"
+  macaddress <- getTagText xmlDocument "macaddress"
+  credential <- getTagText xmlDocument "credential"
   state <- get
   let snonce = lastSNonce state
   upload_key_0 <- getUploadKeyForMacaddress (head macaddress)
