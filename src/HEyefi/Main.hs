@@ -12,18 +12,23 @@ import           HEyefi.UploadPhoto (handleUpload)
 
 import           Control.Concurrent (forkIO)
 import           Control.Concurrent.STM (
-  newTVar, atomically, writeTVar, TVar, readTVar )
+    newTVar
+  , atomically
+  , writeTVar
+  , TVar
+  , readTVar )
 import           Control.Monad (forever)
 import qualified Data.ByteString as B
 import           Data.ByteString.Lazy (fromStrict)
 import qualified Data.ByteString.Lazy as BL
 import           Data.Maybe (isJust, fromJust, isNothing)
-import           Network.Wai ( Application
-                   , Request
-                   , pathInfo
-                   , requestBody
-                   , requestMethod
-                   , requestHeaders )
+import           Network.Wai (
+    Application
+  , Request
+  , pathInfo
+  , requestBody
+  , requestMethod
+  , requestHeaders )
 import           Network.Wai.Handler.Warp (run)
 import           System.Posix.Signals (installHandler, sigHUP, Handler( Catch ))
 
