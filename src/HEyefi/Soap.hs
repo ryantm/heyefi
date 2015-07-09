@@ -33,23 +33,27 @@ import           Data.Time.Clock (getCurrentTime, UTCTime)
 import           Data.Time.Format (formatTime, rfc822DateFormat, defaultTimeLocale)
 import           Data.Tree.NTree.TypeDefs (NTree)
 import           Network.HTTP.Types (status200, unauthorized401)
-import Network.HTTP.Types.Header (hContentType,
-                                  hServer,
-                                  hContentLength,
-                                  hDate,
-                                  Header,
-                                  HeaderName)
-import Network.Wai ( responseLBS
-                   , Request
-                   , Response
-                   , requestHeaders )
+import           Network.HTTP.Types.Header (
+  hContentType,
+  hServer,
+  hContentLength,
+  hDate,
+  Header,
+  HeaderName )
+import           Network.Wai (
+    responseLBS
+  , Request
+  , Response
+  , requestHeaders )
 import           Text.HandsomeSoup (css)
 import           Text.XML.HXT.Arrow.XmlState.TypeDefs (XIOState)
-import Text.XML.HXT.Core ( runX
-                         , readString
-                         , getText
-                         , (/>))
+import           Text.XML.HXT.Core (
+    runX
+  , readString
+  , getText
+  , (/>) )
 import           Text.XML.HXT.DOM.TypeDefs (XNode, XmlTree)
+
 
 data SoapAction = StartSession
                 | GetPhotoStatus
