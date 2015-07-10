@@ -24,7 +24,6 @@ logInfo s = liftIO (log' Info s)
 logDebug :: String -> HEyefiM ()
 logDebug s = do
   config <- get
-  let ll = logLevel config
-  case ll of
+  case logLevel config of
    Debug -> liftIO (log' Debug s)
    _ -> return ()
