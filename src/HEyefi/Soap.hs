@@ -107,7 +107,7 @@ getTagText xmlDocument s = liftIO (runX (xmlDocument >>> css s /> getText))
 
 handleSoapAction :: SoapAction -> BL.ByteString -> HEyefiApplication
 handleSoapAction StartSession body _ f = do
-  logInfo "Got StartSession request"
+  logDebug "Got StartSession request"
   let xmlDocument = readString [] (toString body)
   macaddress <- getTagText xmlDocument "macaddress"
   cnonce <- getTagText  xmlDocument "cnonce"
@@ -124,7 +124,7 @@ handleSoapAction StartSession body _ f = do
   response <- mkResponse responseBody
   liftIO (f response)
 handleSoapAction GetPhotoStatus body _ f = do
-  logInfo "Got GetPhotoStatus request"
+  logDebug "Got GetPhotoStatus request"
   credentialGood <- checkCredential body
   if credentialGood then do
     responseBody <- getPhotoStatusResponse
@@ -133,7 +133,7 @@ handleSoapAction GetPhotoStatus body _ f = do
   else
     liftIO (f mkUnauthorizedResponse)
 handleSoapAction MarkLastPhotoInRoll _ _ f = do
-  logInfo "Got MarkLastPhotoInRoll request"
+  logDebug "Got MarkLastPhotoInRoll request"
   responseBody <- markLastPhotoInRollResponse
   response <- mkResponse responseBody
   liftIO (f response)
