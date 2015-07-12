@@ -12,6 +12,7 @@ import           HEyefi.Hex (unhex)
 import           HEyefi.Log (logInfo, logDebug)
 import           HEyefi.MarkLastPhotoInRoll (markLastPhotoInRollResponse)
 import           HEyefi.StartSession (startSessionResponse)
+import           HEyefi.Strings
 import           HEyefi.Types (HEyefiM, HEyefiApplication, lastSNonce)
 
 
@@ -148,15 +149,14 @@ checkCredential body = do
   upload_key_0 <- getUploadKeyForMacaddress (head macaddress)
   case upload_key_0 of
    Nothing -> do
-     logInfo ("No upload key found in configuration for macaddress: " ++ head macaddress)
+     logInfo (noUploadKeyInConfiguration (head macaddress))
      return False
    Just upload_key_0' -> do
      let credentialString = head macaddress ++ upload_key_0' ++ snonce
      let binaryCredentialString = unhex credentialString
      let expectedCredential = md5s (Str (fromJust binaryCredentialString))
      if head credential /= expectedCredential then do
-       logInfo ("Invalid credential in GetPhotoStatus request. Expected: "
-                ++ expectedCredential ++ " Actual: " ++ head credential)
+       logInfo (invalidCredential expectedCredential (head credential))
        return False
      else
        return True

@@ -4,7 +4,7 @@ module HEyefi.Config where
 
 import           HEyefi.Types (Config(..), CardConfig, SharedConfig, LogLevel(Info), cardMap, uploadDirectory, logLevel, HEyefiM(..))
 import           HEyefi.Log (logInfo)
-import           HEyefi.Constant hiding (configPath)
+import           HEyefi.Strings
 
 import           Control.Concurrent.STM (TVar, readTVar, newTVar, writeTVar, atomically, retry)
 import           Control.Monad.Catch (finally, catches, Handler (..), SomeException (..))
