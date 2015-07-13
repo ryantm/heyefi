@@ -61,6 +61,7 @@ executable heyefi
                      , transformers
                      , exceptions
                      , random
+                     , optparse-applicative
 
 test-suite test-heyefi
   default-language: Haskell2010
@@ -102,3 +103,4 @@ test-suite test-heyefi
                   , transformers
                   , exceptions
                   , random
+                  , optparse-applicative
