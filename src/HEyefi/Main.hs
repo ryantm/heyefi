@@ -6,6 +6,7 @@ import           HEyefi.Config (monitorConfig, newConfig, runWithConfig)
 import           HEyefi.Constant (port, configPath)
 import           HEyefi.Log (logInfoIO, logDebug)
 import           HEyefi.Soap (handleSoapAction, soapAction)
+import           HEyefi.Strings
 import           HEyefi.Types (SharedConfig, HEyefiApplication)
 import           HEyefi.UploadPhoto (handleUpload)
 
@@ -47,7 +48,7 @@ main = do
                    runWithConfig c (
                      monitorConfig configPath sharedConfig wakeSig)))
 
-  logInfoIO ("Listening on port " ++ show port)
+  logInfoIO (listeningOnPort (show port))
   run port (app sharedConfig)
 
 app :: SharedConfig -> Application

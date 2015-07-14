@@ -24,3 +24,6 @@ invalidCredential :: String -> String -> String
 invalidCredential expected actual =
   ("Invalid credential in GetPhotoStatus request. Expected: "
    ++ expected ++ " Actual: " ++ actual)
+
+listeningOnPort :: String -> String
+listeningOnPort = (++) "Listening on port "
