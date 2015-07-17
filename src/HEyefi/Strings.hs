@@ -27,3 +27,12 @@ invalidCredential expected actual =
 
 listeningOnPort :: String -> String
 listeningOnPort = (++) "Listening on port "
+
+gotStartSessionRequest :: String
+gotStartSessionRequest = "Got StartSession request"
+
+gotGetPhotoStatusRequest :: String
+gotGetPhotoStatusRequest = "Got GetPhotoStatus request"
+
+gotMarkLastPhotoInRollRequest :: String
+gotMarkLastPhotoInRollRequest = "Got MarkLastPhotoInRoll request"
