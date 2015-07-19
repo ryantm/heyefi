@@ -36,3 +36,9 @@ gotGetPhotoStatusRequest = "Got GetPhotoStatus request"
 
 gotMarkLastPhotoInRollRequest :: String
 gotMarkLastPhotoInRollRequest = "Got MarkLastPhotoInRoll request"
+
+loadedConfiguration :: String
+loadedConfiguration = "Loaded configuration"
+
+tryingToLoadConfiguration :: String -> String
+tryingToLoadConfiguration = (++) "Trying to load configuration at "

@@ -83,14 +83,14 @@ getUploadDirectory configMap = do
 
 reloadConfig :: FilePath -> HEyefiM Config
 reloadConfig configPath = do
-  logInfo ("Trying to load configuration at " ++ configPath)
+  logInfo (tryingToLoadConfiguration configPath)
   catches (
     do
       config <- liftIO (load [Required configPath])
       configMap <- liftIO (getMap config)
       cardConfig <- getCardConfig configMap
       uploadDir <- getUploadDirectory configMap
-      logInfo "Loaded configuration"
+      logInfo loadedConfiguration
       return Config {
         cardMap = cardConfig,
         uploadDirectory = uploadDir,
