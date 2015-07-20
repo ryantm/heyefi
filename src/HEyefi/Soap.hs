@@ -71,7 +71,7 @@ soapAction req =
    Just (_,"\"urn:StartSession\"") -> Just StartSession
    Just (_,"\"urn:GetPhotoStatus\"") -> Just GetPhotoStatus
    Just (_,"\"urn:MarkLastPhotoInRoll\"") -> Just MarkLastPhotoInRoll
-   Just (_,sa) -> error (show sa ++ " is not a defined SoapAction yet")
+   Just (_,sa) -> error (notADefinedSoapAction (show sa))
    _ -> Nothing
 
 mkResponse :: String -> HEyefiM Response

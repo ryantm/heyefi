@@ -52,3 +52,9 @@ errorParsingConfigurationFile p msg =
 
 couldNotFindConfigurationFile :: String -> String
 couldNotFindConfigurationFile = (++) "Could not find configuration file at "
+
+didNotMatchDispatch :: String
+didNotMatchDispatch = "did not match dispatch"
+
+notADefinedSoapAction :: String -> String
+notADefinedSoapAction sa = sa ++ " is not a defined SoapAction yet"

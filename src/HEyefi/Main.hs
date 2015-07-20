@@ -72,7 +72,7 @@ dispatchRequest body req f
   | requestMethod req == "POST" &&
     isJust (soapAction req) =
       handleSoapAction (fromJust (soapAction req)) body req f
-dispatchRequest _ _ _ = error "did not match dispatch"
+dispatchRequest _ _ _ = error didNotMatchDispatch
 
 getWholeRequestBody :: Request -> IO B.ByteString
 getWholeRequestBody request = do
