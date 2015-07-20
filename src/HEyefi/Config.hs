@@ -98,15 +98,10 @@ reloadConfig configPath = do
         lastSNonce = "" } -- TODO: Careful, we might be erasing something here.
     )
     [Handler (\(ParseError p msg) -> do
-                 logInfo
-                   ("Error parsing configuration file at " ++
-                          p ++
-                          " with message: " ++
-                          msg)
+                 logInfo (errorParsingConfigurationFile p msg)
                  return emptyConfig),
      Handler (\(SomeException _) -> do
-                 logInfo
-                   ("Could not find configuration file at " ++ configPath)
+                 logInfo (couldNotFindConfigurationFile configPath)
                  return emptyConfig)]
 
 runWithConfig :: Config -> HEyefiM a -> IO (a,Config)

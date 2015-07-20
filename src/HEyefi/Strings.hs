@@ -42,3 +42,13 @@ loadedConfiguration = "Loaded configuration"
 
 tryingToLoadConfiguration :: String -> String
 tryingToLoadConfiguration = (++) "Trying to load configuration at "
+
+errorParsingConfigurationFile :: String -> String -> String
+errorParsingConfigurationFile p msg =
+  "Error parsing configuration file at " ++
+  p ++
+  " with message: " ++
+  msg
+
+couldNotFindConfigurationFile :: String -> String
+couldNotFindConfigurationFile = (++) "Could not find configuration file at "
