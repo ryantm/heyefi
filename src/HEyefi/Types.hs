@@ -14,9 +14,18 @@ import           Network.Wai (Request, Response, ResponseReceived)
 --Global Monads
 newtype HEyefiM a = HEyefiM {
   runHeyefi :: StateT Config IO a
-  } deriving (Functor, Applicative, Monad, MonadIO, MonadMask, MonadCatch, MonadThrow, MonadState Config)
+  } deriving ( Functor
+             , Applicative
+             , Monad
+             , MonadIO
+             , MonadMask
+             , MonadCatch
+             , MonadThrow
+             , MonadState Config)
 
-type HEyefiApplication = Request -> (Response -> IO ResponseReceived) -> HEyefiM ResponseReceived
+type HEyefiApplication = Request
+                         -> (Response -> IO ResponseReceived)
+                         -> HEyefiM ResponseReceived
 
 -- Logging
 data LogLevel = Info | Debug
