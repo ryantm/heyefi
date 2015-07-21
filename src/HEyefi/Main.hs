@@ -2,6 +2,7 @@
 
 module Main where
 
+import           HEyefi.CommandLineOptions
 import           HEyefi.Config (monitorConfig, newConfig, runWithConfig)
 import           HEyefi.Constant (port, configPath)
 import           HEyefi.Log (logInfoIO, logDebug)
@@ -9,7 +10,6 @@ import           HEyefi.Soap (handleSoapAction, soapAction)
 import           HEyefi.Strings
 import           HEyefi.Types (SharedConfig, HEyefiApplication)
 import           HEyefi.UploadPhoto (handleUpload)
-
 
 import           Control.Concurrent (forkIO)
 import           Control.Concurrent.STM (
@@ -31,13 +31,18 @@ import           Network.Wai (
   , requestMethod
   , requestHeaders )
 import           Network.Wai.Handler.Warp (run)
+import           Options.Applicative
 import           System.Posix.Signals (installHandler, sigHUP, Handler( Catch ))
 
 handleHup :: TVar (Maybe Int) -> IO ()
 handleHup wakeSig = atomically (writeTVar wakeSig (Just 1))
 
-main :: IO ()
-main = do
+greet :: Maybe () -> IO ()
+greet Nothing = putStrLn "version"
+greet (Just ()) = runHeyefi
+
+runHeyefi :: IO ()
+runHeyefi = do
   wakeSig <- atomically (newTVar Nothing)
   sharedConfig <- newConfig
   _ <- installHandler sigHUP (Catch $ handleHup wakeSig) Nothing
@@ -50,6 +55,9 @@ main = do
 
   logInfoIO (listeningOnPort (show port))
   run port (app sharedConfig)
+
+main :: IO ()
+main = execParser opts >>= greet
 
 app :: SharedConfig -> Application
 app sharedConfig req f = do

@@ -30,6 +30,7 @@ executable heyefi
                      , HEyefi.GetPhotoStatus
                      , HEyefi.StartSession
                      , HEyefi.Strings
+                     , HEyefi.CommandLineOptions
   ghc-options:         -Wall
   build-depends:       base >=4.8 && <=5
                      , stm
