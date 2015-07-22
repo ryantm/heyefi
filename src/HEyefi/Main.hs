@@ -2,7 +2,7 @@
 
 module Main where
 
-import           HEyefi.CommandLineOptions
+import           HEyefi.CommandLineOptions (handleOptionsThenMaybe)
 import           HEyefi.Config (monitorConfig, newConfig, runWithConfig)
 import           HEyefi.Constant (port, configPath)
 import           HEyefi.Log (logInfoIO, logDebug)
@@ -31,15 +31,10 @@ import           Network.Wai (
   , requestMethod
   , requestHeaders )
 import           Network.Wai.Handler.Warp (run)
-import           Options.Applicative
 import           System.Posix.Signals (installHandler, sigHUP, Handler( Catch ))
 
 handleHup :: TVar (Maybe Int) -> IO ()
 handleHup wakeSig = atomically (writeTVar wakeSig (Just 1))
-
-greet :: Maybe () -> IO ()
-greet Nothing = putStrLn "version"
-greet (Just ()) = runHeyefi
 
 runHeyefi :: IO ()
 runHeyefi = do
@@ -57,7 +52,7 @@ runHeyefi = do
   run port (app sharedConfig)
 
 main :: IO ()
-main = execParser opts >>= greet
+main = handleOptionsThenMaybe runHeyefi
 
 app :: SharedConfig -> Application
 app sharedConfig req f = do

@@ -22,8 +22,8 @@ noUploadKeyInConfiguration =
 
 invalidCredential :: String -> String -> String
 invalidCredential expected actual =
-  ("Invalid credential in GetPhotoStatus request. Expected: "
-   ++ expected ++ " Actual: " ++ actual)
+  "Invalid credential in GetPhotoStatus request. Expected: "
+   ++ expected ++ " Actual: " ++ actual
 
 listeningOnPort :: String -> String
 listeningOnPort = (++) "Listening on port "
@@ -58,3 +58,9 @@ didNotMatchDispatch = "did not match dispatch"
 
 notADefinedSoapAction :: String -> String
 notADefinedSoapAction sa = sa ++ " is not a defined SoapAction yet"
+
+programDescription :: String
+programDescription = "A server daemon for Eye-Fi SD cards."
+
+programHeaderDescription :: String
+programHeaderDescription = "heyefi - a server for Eye-Fi SD cards"
