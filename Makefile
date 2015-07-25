@@ -25,3 +25,11 @@ testv :
 hlint :
 	rm -f report.html
 	cabal exec -- hlint lint src test --report
+
+packunused :
+	cabal update
+	cabal clean
+	rm -f *.imports
+	cabal configure -O0 --disable-library-profiling
+	cabal build --ghc-option=-ddump-minimal-imports
+	packunused
