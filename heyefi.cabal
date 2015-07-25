@@ -42,21 +42,17 @@ executable heyefi
                      , iso8601-time
                      , warp
                      , wai
-                     , HTTP
                      , http-types
                      , HandsomeSoup
                      , hxt
                      , case-insensitive
-                     , old-locale
                      , multipart
                      , tar
                      , configurator
                      , unordered-containers
                      , text
-                     , errors
                      , temporary
                      , directory
-                     , filemanip
                      , filepath
                      , mtl
                      , transformers
@@ -82,12 +78,10 @@ test-suite test-heyefi
                   , iso8601-time
                   , warp
                   , wai
-                  , HTTP
                   , http-types
                   , HandsomeSoup
                   , hxt
                   , case-insensitive
-                  , old-locale
                   , multipart
                   , tar
                   , configurator
@@ -96,10 +90,8 @@ test-suite test-heyefi
                   , silently
                   , filepath
                   , directory
-                  , errors
                   , temporary
                   , directory
-                  , filemanip
                   , mtl
                   , transformers
                   , exceptions
