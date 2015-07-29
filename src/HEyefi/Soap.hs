@@ -110,9 +110,9 @@ handleSoapAction StartSession body _ f = do
   logDebug gotStartSessionRequest
   let xmlDocument = readString [] (toString body)
   macaddress <- getTagText xmlDocument "macaddress"
-  cnonce <- getTagText  xmlDocument "cnonce"
-  transfermode <- getTagText  xmlDocument "transfermode"
-  transfermodetimestamp <- getTagText  xmlDocument "transfermodetimestamp"
+  cnonce <- getTagText xmlDocument "cnonce"
+  transfermode <- getTagText xmlDocument "transfermode"
+  transfermodetimestamp <- getTagText xmlDocument "transfermodetimestamp"
   logDebug (show macaddress)
   logDebug (show transfermodetimestamp)
   responseBody <- startSessionResponse
