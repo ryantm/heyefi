@@ -19,7 +19,7 @@ logInfoIO :: String -> IO ()
 logInfoIO = log' Info
 
 logInfo ::  String -> HEyefiM ()
-logInfo s = liftIO (log' Info s)
+logInfo = liftIO . logInfoIO
 
 logDebug :: String -> HEyefiM ()
 logDebug s = do
