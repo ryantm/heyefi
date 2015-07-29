@@ -2,12 +2,30 @@
 
 module HEyefi.Config where
 
-import           HEyefi.Types (Config(..), CardConfig, SharedConfig, LogLevel(Info), cardMap, uploadDirectory, logLevel, HEyefiM(..))
+import           HEyefi.Types (
+    Config(..)
+  , CardConfig
+  , SharedConfig
+  , LogLevel(Info)
+  , cardMap
+  , uploadDirectory
+  , logLevel
+  , HEyefiM(..))
 import           HEyefi.Log (logInfo)
 import           HEyefi.Strings
 
-import           Control.Concurrent.STM (TVar, readTVar, newTVar, writeTVar, atomically, retry)
-import           Control.Monad.Catch (finally, catches, Handler (..), SomeException (..))
+import           Control.Concurrent.STM (
+    TVar
+  , readTVar
+  , newTVar
+  , writeTVar
+  , atomically
+  , retry)
+import           Control.Monad.Catch (
+    finally
+  , catches
+  , Handler (..)
+  , SomeException (..))
 import           Control.Monad.IO.Class (liftIO)
 import           Control.Monad.State.Lazy (get, put, runStateT)
 import           Data.Configurator (load, Worth (Required), getMap)
