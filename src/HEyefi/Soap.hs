@@ -109,17 +109,18 @@ handleSoapAction :: SoapAction -> BL.ByteString -> HEyefiApplication
 handleSoapAction StartSession body _ f = do
   logDebug gotStartSessionRequest
   let xmlDocument = readString [] (toString body)
-  macaddress <- getTagText xmlDocument "macaddress"
-  cnonce <- getTagText xmlDocument "cnonce"
-  transfermode <- getTagText xmlDocument "transfermode"
-  transfermodetimestamp <- getTagText xmlDocument "transfermodetimestamp"
+  let tag s = fmap head (getTagText xmlDocument s)
+  macaddress <- tag "macaddress"
+  cnonce <- tag "cnonce"
+  transfermode <- tag "transfermode"
+  transfermodetimestamp <- tag "transfermodetimestamp"
   logDebug (show macaddress)
   logDebug (show transfermodetimestamp)
   responseBody <- startSessionResponse
-                   (head macaddress)
-                   (head cnonce)
-                   (head transfermode)
-                   (head transfermodetimestamp)
+                   macaddress
+                   cnonce
+                   transfermode
+                   transfermodetimestamp
   logDebug (show responseBody)
   response <- mkResponse responseBody
   liftIO (f response)
