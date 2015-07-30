@@ -20,7 +20,6 @@ import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
 
 import           Control.Arrow ((>>>))
-import           Control.Arrow.IOStateListArrow (IOSLA)
 import           Control.Monad.IO.Class (liftIO, MonadIO)
 import           Control.Monad.State.Lazy (get)
 import           Data.ByteString.Lazy (fromStrict)
@@ -32,7 +31,6 @@ import           Data.List (find)
 import           Data.Maybe (fromJust)
 import           Data.Time.Clock (getCurrentTime, UTCTime)
 import           Data.Time.Format (formatTime, rfc822DateFormat, defaultTimeLocale)
-import           Data.Tree.NTree.TypeDefs (NTree)
 import           Network.HTTP.Types (status200, unauthorized401)
 import           Network.HTTP.Types.Header (
   hContentType,
@@ -47,13 +45,11 @@ import           Network.Wai (
   , Response
   , requestHeaders )
 import           Text.HandsomeSoup (css)
-import           Text.XML.HXT.Arrow.XmlState.TypeDefs (XIOState)
 import           Text.XML.HXT.Core (
     runX
   , readString
   , getText
   , (/>) )
-import           Text.XML.HXT.DOM.TypeDefs (XNode, XmlTree)
 
 
 data SoapAction = StartSession
@@ -95,21 +91,18 @@ defaultResponseHeaders time size =
   , (hServer, "Eye-Fi Agent/2.0.4.0 (Windows XP SP2)")
   , (hContentLength, fromString (show size))]
 
-
-getTagText :: Control.Monad.IO.Class.MonadIO m =>
-              Control.Arrow.IOStateListArrow.IOSLA
-              (Text.XML.HXT.Arrow.XmlState.TypeDefs.XIOState ())
-              Text.XML.HXT.DOM.TypeDefs.XmlTree
-              (Data.Tree.NTree.TypeDefs.NTree Text.XML.HXT.DOM.TypeDefs.XNode)
-           -> String
-           -> m [String]
-getTagText xmlDocument s = liftIO (runX (xmlDocument >>> css s /> getText))
+firstTag :: Control.Monad.IO.Class.MonadIO m =>
+            BL.ByteString ->
+            String ->
+            m String
+firstTag body tagName = do
+  let xmlDocument = readString [] (toString body)
+  fmap head (liftIO (runX (xmlDocument >>> css tagName /> getText)))
 
 handleSoapAction :: SoapAction -> BL.ByteString -> HEyefiApplication
 handleSoapAction StartSession body _ f = do
   logDebug gotStartSessionRequest
-  let xmlDocument = readString [] (toString body)
-  let tag s = fmap head (getTagText xmlDocument s)
+  let tag = firstTag body
   macaddress <- tag "macaddress"
   cnonce <- tag "cnonce"
   transfermode <- tag "transfermode"
@@ -139,25 +132,24 @@ handleSoapAction MarkLastPhotoInRoll _ _ f = do
   response <- mkResponse responseBody
   liftIO (f response)
 
-
 checkCredential :: BL.ByteString -> HEyefiM Bool
 checkCredential body = do
-  let xmlDocument = readString [] (toString body)
-  macaddress <- getTagText xmlDocument "macaddress"
-  credential <- getTagText xmlDocument "credential"
+  let tag = firstTag body
+  macaddress <- tag "macaddress"
+  credential <- tag "credential"
   state <- get
   let snonce = lastSNonce state
-  upload_key_0 <- getUploadKeyForMacaddress (head macaddress)
+  upload_key_0 <- getUploadKeyForMacaddress macaddress
   case upload_key_0 of
    Nothing -> do
-     logInfo (noUploadKeyInConfiguration (head macaddress))
+     logInfo (noUploadKeyInConfiguration macaddress)
      return False
    Just upload_key_0' -> do
-     let credentialString = head macaddress ++ upload_key_0' ++ snonce
+     let credentialString = macaddress ++ upload_key_0' ++ snonce
      let binaryCredentialString = unhex credentialString
      let expectedCredential = md5s (Str (fromJust binaryCredentialString))
-     if head credential /= expectedCredential then do
-       logInfo (invalidCredential expectedCredential (head credential))
+     if credential /= expectedCredential then do
+       logInfo (invalidCredential expectedCredential credential)
        return False
      else
        return True
