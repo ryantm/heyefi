@@ -30,7 +30,10 @@ import           Data.Hash.MD5 (md5s, Str (..))
 import           Data.List (find)
 import           Data.Maybe (fromJust)
 import           Data.Time.Clock (getCurrentTime, UTCTime)
-import           Data.Time.Format (formatTime, rfc822DateFormat, defaultTimeLocale)
+import           Data.Time.Format (
+    formatTime
+  , rfc822DateFormat
+  , defaultTimeLocale)
 import           Network.HTTP.Types (status200, unauthorized401)
 import           Network.HTTP.Types.Header (
   hContentType,
