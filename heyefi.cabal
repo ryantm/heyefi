@@ -24,10 +24,9 @@ executable heyefi
                      , HEyefi.Hex
                      , HEyefi.Log
                      , HEyefi.Soap
+                     , HEyefi.SoapResponse
                      , HEyefi.Types
-                     , HEyefi.MarkLastPhotoInRoll
                      , HEyefi.UploadPhoto
-                     , HEyefi.GetPhotoStatus
                      , HEyefi.StartSession
                      , HEyefi.Strings
                      , HEyefi.CommandLineOptions
