@@ -10,8 +10,9 @@ import           HEyefi.Config (getUploadKeyForMacaddress)
 import           HEyefi.Hex (unhex)
 import           HEyefi.Log (logInfo, logDebug)
 import           HEyefi.SoapResponse (
-    markLastPhotoInRollResponse
-  , getPhotoStatusResponse)
+    soapResponse
+  ,  markLastPhotoInRollResponse
+  , getPhotoStatusResponse )
 import           HEyefi.StartSession (startSessionResponse)
 import           HEyefi.Strings
 import           HEyefi.Types (HEyefiM, HEyefiApplication, lastSNonce)
@@ -53,17 +54,7 @@ import           Text.XML.HXT.Core (
     runX
   , readString
   , getText
-  , (/>)
-  , runLA
-  , root
-  , writeDocumentToString
-  , XmlTree
-  , LA
-  , mkelem
-  , spi
-  , sattr
-  , t_xml
-  , ArrowXml)
+  , (/>))
 
 
 data SoapAction = StartSession
@@ -165,16 +156,3 @@ checkCredential body = do
        return False
      else
        return True
-
-soapMessage :: ArrowXml a => [a n XmlTree] -> [a n XmlTree]
-soapMessage body =
-  [ spi t_xml "version=\"1.0\" encoding=\"UTF-8\""
-  , mkelem "SOAP-ENV:Envelope"
-    [ sattr "xmlns:SOAP-ENV" "http://schemas.xmlsoap.org/soap/envelope/" ]
-    [ mkelem "SOAP-ENV:Body" [] body ]]
-
-soapResponse :: [LA n XmlTree] -> String
-soapResponse body =
-  head (runLA (document >>> writeDocumentToString []) undefined)
-  where
-    document = root [] (soapMessage body)
