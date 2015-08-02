@@ -22,7 +22,7 @@ import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
 
 import           Control.Arrow ((>>>))
-import           Control.Monad.IO.Class (liftIO, MonadIO)
+import           Control.Monad.IO.Class (liftIO)
 import           Control.Monad.State.Lazy (get)
 import           Data.ByteString.Lazy (fromStrict)
 import           Data.ByteString.Lazy.UTF8 (toString)
@@ -51,10 +51,10 @@ import           Network.Wai (
   , requestHeaders )
 import           Text.HandsomeSoup (css)
 import           Text.XML.HXT.Core (
-    runX
-  , readString
-  , getText
-  , (/>))
+    getText
+  , (/>)
+  , runLA
+  , xreadDoc )
 
 
 data SoapAction = StartSession
@@ -96,22 +96,32 @@ defaultResponseHeaders time size =
   , (hServer, "Eye-Fi Agent/2.0.4.0 (Windows XP SP2)")
   , (hContentLength, fromString (show size))]
 
-firstTag :: Control.Monad.IO.Class.MonadIO m =>
-            BL.ByteString ->
+
+    -- Couldn't match type ‘Control.Arrow.IOStateListArrow.IOSLA
+    --                        (Text.XML.HXT.Arrow.XmlState.TypeDefs.XIOState s0)’
+    --                with ‘Control.Arrow.ListArrow.LA’
+    -- Expected type: Control.Arrow.ListArrow.LA
+    --                  a0 Text.XML.HXT.DOM.TypeDefs.XmlTree
+    --   Actual type: Text.XML.HXT.Arrow.XmlState.TypeDefs.IOStateArrow
+    --                  s0 a0 Text.XML.HXT.DOM.TypeDefs.XmlTree
+    -- In the first argument of ‘(>>>)’, namely ‘xmlDocument’
+    -- In the first argument of ‘runLA’, namely
+    --   ‘(xmlDocument >>> css tagName /> getText)’
+
+firstTag :: BL.ByteString ->
             String ->
-            m String
-firstTag body tagName = do
-  let xmlDocument = readString [] (toString body)
-  fmap head (liftIO (runX (xmlDocument >>> css tagName /> getText)))
+            String
+firstTag body tagName =
+  head (runLA (xreadDoc >>> css tagName /> getText) (toString body))
 
 handleSoapAction :: SoapAction -> BL.ByteString -> HEyefiApplication
 handleSoapAction StartSession body _ f = do
   logDebug gotStartSessionRequest
   let tag = firstTag body
-  macaddress <- tag "macaddress"
-  cnonce <- tag "cnonce"
-  transfermode <- tag "transfermode"
-  transfermodetimestamp <- tag "transfermodetimestamp"
+  let macaddress = tag "macaddress"
+  let cnonce = tag "cnonce"
+  let transfermode = tag "transfermode"
+  let transfermodetimestamp = tag "transfermodetimestamp"
   logDebug (show macaddress)
   logDebug (show transfermodetimestamp)
   responseBody <- startSessionResponse
@@ -138,8 +148,8 @@ handleSoapAction MarkLastPhotoInRoll _ _ f = do
 checkCredential :: BL.ByteString -> HEyefiM Bool
 checkCredential body = do
   let tag = firstTag body
-  macaddress <- tag "macaddress"
-  credential <- tag "credential"
+  let macaddress = tag "macaddress"
+  let credential = tag "credential"
   state <- get
   let snonce = lastSNonce state
   upload_key_0 <- getUploadKeyForMacaddress macaddress
