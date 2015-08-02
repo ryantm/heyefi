@@ -40,7 +40,7 @@ runHeyefi :: IO ()
 runHeyefi = do
   wakeSig <- atomically (newTVar Nothing)
   sharedConfig <- newConfig
-  _ <- installHandler sigHUP (Catch $ handleHup wakeSig) Nothing
+  _ <- installHandler sigHUP (Catch (handleHup wakeSig)) Nothing
 
   _ <- forkIO (forever
                (do
