@@ -12,12 +12,20 @@ import           Codec.Archive.Tar (extract)
 import           Control.Monad.IO.Class (liftIO)
 import           Control.Monad.State.Lazy (get)
 import qualified Data.ByteString.Lazy as BL
-import           Network.Multipart ( parseMultipartBody, MultiPart (..), BodyPart (..) )
+import           Network.Multipart (
+    parseMultipartBody
+  , MultiPart (..)
+  , BodyPart (..) )
 import           System.Directory (copyFile, getDirectoryContents)
 import           System.FilePath.Posix ((</>))
 import           System.IO (hClose)
 import           System.IO.Temp (withSystemTempFile, withSystemTempDirectory)
-import           System.Posix.Files (setOwnerAndGroup, fileOwner, fileGroup, getFileStatus, FileStatus)
+import           System.Posix.Files (
+    setOwnerAndGroup
+  , fileOwner
+  , fileGroup
+  , getFileStatus
+  , FileStatus )
 
 
 copyMatchingOwnership :: FileStatus -> FilePath -> FilePath -> IO FilePath
