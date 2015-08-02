@@ -96,18 +96,6 @@ defaultResponseHeaders time size =
   , (hServer, "Eye-Fi Agent/2.0.4.0 (Windows XP SP2)")
   , (hContentLength, fromString (show size))]
 
-
-    -- Couldn't match type ‘Control.Arrow.IOStateListArrow.IOSLA
-    --                        (Text.XML.HXT.Arrow.XmlState.TypeDefs.XIOState s0)’
-    --                with ‘Control.Arrow.ListArrow.LA’
-    -- Expected type: Control.Arrow.ListArrow.LA
-    --                  a0 Text.XML.HXT.DOM.TypeDefs.XmlTree
-    --   Actual type: Text.XML.HXT.Arrow.XmlState.TypeDefs.IOStateArrow
-    --                  s0 a0 Text.XML.HXT.DOM.TypeDefs.XmlTree
-    -- In the first argument of ‘(>>>)’, namely ‘xmlDocument’
-    -- In the first argument of ‘runLA’, namely
-    --   ‘(xmlDocument >>> css tagName /> getText)’
-
 firstTag :: BL.ByteString ->
             String ->
             String
