@@ -11,7 +11,7 @@ import           HEyefi.Hex (unhex)
 import           HEyefi.Log (logInfo, logDebug)
 import           HEyefi.SoapResponse (
     soapResponse
-  ,  markLastPhotoInRollResponse
+  , markLastPhotoInRollResponse
   , getPhotoStatusResponse )
 import           HEyefi.StartSession (startSessionResponse)
 import           HEyefi.Strings
@@ -35,15 +35,15 @@ import           Data.Time.Clock (getCurrentTime, UTCTime)
 import           Data.Time.Format (
     formatTime
   , rfc822DateFormat
-  , defaultTimeLocale)
+  , defaultTimeLocale )
 import           Network.HTTP.Types (status200, unauthorized401)
 import           Network.HTTP.Types.Header (
-  hContentType,
-  hServer,
-  hContentLength,
-  hDate,
-  Header,
-  HeaderName )
+    hContentType
+  , hServer
+  , hContentLength
+  , hDate
+  , Header
+  , HeaderName )
 import           Network.Wai (
     responseLBS
   , Request
