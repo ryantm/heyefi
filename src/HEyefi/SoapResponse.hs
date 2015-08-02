@@ -33,6 +33,12 @@ soapResponse body =
   where
     document = root [] (soapMessage body)
 
+uploadPhotoResponse :: [LA n XmlTree]
+uploadPhotoResponse =
+  [ mkelem "UploadPhotoResponse"
+    [ sattr "xmlns" "http://localhost/api/soap/eyefilm" ]
+    [ mkelem "success" [] [ txt "true" ] ]
+  ]
 
 markLastPhotoInRollResponse :: [LA n XmlTree]
 markLastPhotoInRollResponse =
