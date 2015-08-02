@@ -14,7 +14,7 @@ import Data.Char (intToDigit)
 import Data.Hash.MD5 (md5s, Str (..))
 import Data.Maybe (fromJust)
 import System.Random (randomRIO)
-import Text.XML.HXT.Core ( runX
+import Text.XML.HXT.Core ( runLA
                          , mkelem
                          , spi
                          , t_xml
@@ -63,5 +63,5 @@ startSessionResponse macaddress cnonce transfermode transfermodetimestamp = do
                ]
              ]
            ]
-     result <- liftIO (runX (document >>> writeDocumentToString []))
-     return (head result)
+
+     return (head (runLA (document >>> writeDocumentToString []) undefined))
