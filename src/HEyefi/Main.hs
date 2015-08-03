@@ -18,7 +18,7 @@ import           Control.Concurrent.STM (
   , writeTVar
   , TVar
   , readTVar )
-import           Control.Monad (forever)
+import           Control.Monad (forever, void)
 import qualified Data.ByteString as B
 import           Data.ByteString.Lazy (fromStrict)
 import qualified Data.ByteString.Lazy as BL
@@ -36,17 +36,28 @@ import           System.Posix.Signals (installHandler, sigHUP, Handler( Catch ))
 handleHup :: TVar (Maybe Int) -> IO ()
 handleHup wakeSig = atomically (writeTVar wakeSig (Just 1))
 
+hangupSignal :: IO (TVar (Maybe Int))
+hangupSignal = do
+  wakeSig <- atomically (newTVar Nothing)
+  _ <- installHandler sigHUP (Catch (handleHup wakeSig)) Nothing
+  return wakeSig
+
+readAndMonitorSharedConfig :: TVar (Maybe Int) ->
+                              SharedConfig ->
+                              IO ()
+readAndMonitorSharedConfig wakeSig sharedConfig =
+  void (forkIO (forever
+          (do
+              c <- atomically (readTVar sharedConfig)
+              runWithConfig c (
+                monitorConfig configPath sharedConfig wakeSig))))
+
 runHeyefi :: IO ()
 runHeyefi = do
-  wakeSig <- atomically (newTVar Nothing)
+  wakeSig <- hangupSignal
   sharedConfig <- newConfig
-  _ <- installHandler sigHUP (Catch (handleHup wakeSig)) Nothing
 
-  _ <- forkIO (forever
-               (do
-                   c <- atomically (readTVar sharedConfig)
-                   runWithConfig c (
-                     monitorConfig configPath sharedConfig wakeSig)))
+  readAndMonitorSharedConfig wakeSig sharedConfig
 
   logInfoIO (listeningOnPort (show port))
   run port (app sharedConfig)
