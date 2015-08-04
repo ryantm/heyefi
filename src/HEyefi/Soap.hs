@@ -10,8 +10,7 @@ import           HEyefi.Config (getUploadKeyForMacaddress)
 import           HEyefi.Hex (unhex)
 import           HEyefi.Log (logInfo, logDebug)
 import           HEyefi.SoapResponse (
-    soapResponse
-  , markLastPhotoInRollResponse
+    markLastPhotoInRollResponse
   , getPhotoStatusResponse )
 import           HEyefi.StartSession (startSessionResponse)
 import           HEyefi.Strings
@@ -123,13 +122,13 @@ handleSoapAction GetPhotoStatus body _ f = do
   logDebug gotGetPhotoStatusRequest
   credentialGood <- checkCredential body
   if credentialGood then do
-    response <- mkResponse (soapResponse getPhotoStatusResponse)
+    response <- mkResponse getPhotoStatusResponse
     liftIO (f response)
   else
     liftIO (f mkUnauthorizedResponse)
 handleSoapAction MarkLastPhotoInRoll _ _ f = do
   logDebug gotMarkLastPhotoInRollRequest
-  response <- mkResponse (soapResponse markLastPhotoInRollResponse)
+  response <- mkResponse markLastPhotoInRollResponse
   liftIO (f response)
 
 checkCredential :: BL.ByteString -> HEyefiM Bool

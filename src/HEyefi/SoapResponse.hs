@@ -40,15 +40,21 @@ uploadPhotoResponse =
     [ mkelem "success" [] [ txt "true" ] ]
   ]
 
-markLastPhotoInRollResponse :: [LA n XmlTree]
-markLastPhotoInRollResponse =
+markLastPhotoInRollResponse :: String
+markLastPhotoInRollResponse = soapResponse markLastPhotoInRollBody
+
+markLastPhotoInRollBody :: [LA n XmlTree]
+markLastPhotoInRollBody =
   [ mkelem "MarkLastPhotoInRollResponse"
       [ sattr "xmlns" "http://localhost/api/soap/eyefilm" ]
       []
   ]
 
-getPhotoStatusResponse :: [LA n XmlTree]
-getPhotoStatusResponse =
+getPhotoStatusResponse :: String
+getPhotoStatusResponse = soapResponse getPhotoStatusBody
+
+getPhotoStatusBody :: [LA n XmlTree]
+getPhotoStatusBody =
   [ mkelem "GetPhotoStatusResponse"
     [ sattr "xmlns" "http://localhost/api/soap/eyefilm" ]
     [ mkelem "fileid" [] [ txt "1" ]
