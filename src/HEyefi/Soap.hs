@@ -18,13 +18,12 @@ import           HEyefi.Strings
 import           HEyefi.Types (HEyefiM, HEyefiApplication, lastSNonce)
 
 
-import qualified Data.ByteString as B
-import qualified Data.ByteString.Lazy as BL
-
 import           Control.Arrow ((>>>))
 import           Control.Monad.IO.Class (liftIO)
 import           Control.Monad.State.Lazy (get)
+import qualified Data.ByteString as B
 import           Data.ByteString.Lazy (fromStrict)
+import qualified Data.ByteString.Lazy as BL
 import           Data.ByteString.Lazy.UTF8 (toString)
 import           Data.ByteString.UTF8 (fromString)
 import qualified Data.CaseInsensitive as CI
