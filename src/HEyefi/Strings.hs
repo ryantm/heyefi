@@ -64,3 +64,9 @@ programDescription = "A server daemon for Eye-Fi SD cards."
 
 programHeaderDescription :: String
 programHeaderDescription = "heyefi - a server for Eye-Fi SD cards"
+
+gotUploadRequest :: String
+gotUploadRequest = "Got Upload request"
+
+uploadedTo :: String -> String
+uploadedTo = (++) "Uploaded to "

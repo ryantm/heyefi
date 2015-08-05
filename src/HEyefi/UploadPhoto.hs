@@ -6,6 +6,7 @@ import           HEyefi.Constant (multipartBodyBoundary)
 import           HEyefi.Log (logDebug, logInfo)
 import           HEyefi.Soap (mkResponse)
 import           HEyefi.SoapResponse (soapResponse, uploadPhotoResponse)
+import           HEyefi.Strings
 import           HEyefi.Types (uploadDirectory, HEyefiM, HEyefiApplication)
 
 import           Codec.Archive.Tar (extract)
@@ -63,7 +64,7 @@ writeTarFile file = do
 
 handleUpload :: BL.ByteString -> HEyefiApplication
 handleUpload body _ f = do
-  logInfo "Got Upload request"
+  logInfo gotUploadRequest
   let MultiPart bodyParts = parseMultipartBody multipartBodyBoundary body
   logDebug (show (length bodyParts))
   lBP bodyParts
@@ -72,7 +73,7 @@ handleUpload body _ f = do
   let (BodyPart _ digest) = bodyParts !! 2
 
   outputPath <- writeTarFile file
-  logInfo ("Uploaded to " ++ outputPath)
+  logInfo (uploadedTo outputPath)
 
   logDebug (show soapEnvelope)
   logDebug (show digest)
