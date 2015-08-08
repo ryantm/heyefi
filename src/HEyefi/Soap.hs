@@ -1,10 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module HEyefi.Soap
-       ( handleSoapAction
-       , soapAction
-       , mkResponse )
-       where
+module HEyefi.Soap where
 
 import           HEyefi.Config (getUploadKeyForMacaddress)
 import           HEyefi.Hex (unhex)
@@ -14,7 +10,7 @@ import           HEyefi.SoapResponse (
   , getPhotoStatusResponse )
 import           HEyefi.StartSession (startSessionResponse)
 import           HEyefi.Strings
-import           HEyefi.Types (HEyefiM, HEyefiApplication, lastSNonce)
+import           HEyefi.Types
 
 
 import           Control.Arrow ((>>>))
@@ -27,8 +23,7 @@ import           Data.ByteString.Lazy.UTF8 (toString)
 import           Data.ByteString.UTF8 (fromString)
 import qualified Data.CaseInsensitive as CI
 import           Data.Hash.MD5 (md5s, Str (..))
-import           Data.List (find)
-import           Data.Maybe (fromJust)
+import           Data.Maybe (fromJust, isJust)
 import           Data.Time.Clock (getCurrentTime, UTCTime)
 import           Data.Time.Format (
     formatTime
@@ -54,24 +49,26 @@ import           Text.XML.HXT.Core (
   , runLA
   , xreadDoc )
 
+soapActionHeaderName :: HeaderName
+soapActionHeaderName = CI.mk "SoapAction"
 
-data SoapAction = StartSession
-                | GetPhotoStatus
-                | MarkLastPhotoInRoll
-                deriving (Show, Eq)
+headerToSoapAction :: Header -> Maybe SoapAction
+headerToSoapAction h |
+  h == (soapActionHeaderName, "\"urn:StartSession\"") = Just StartSession
+headerToSoapAction h |
+  h == (soapActionHeaderName, "\"urn:GetPhotoStatus\"") = Just GetPhotoStatus
+headerToSoapAction h |
+  h == (soapActionHeaderName, "\"urn:MarkLastPhotoInRoll\"") =
+    Just MarkLastPhotoInRoll
+headerToSoapAction _ = Nothing
 
-headerIsSoapAction :: Header -> Bool
-headerIsSoapAction ("SOAPAction",_) = True
-headerIsSoapAction _ = False
+firstJust :: (a -> Maybe b) -> [a] -> Maybe b
+firstJust f (x:_) | isJust (f x) = f x
+firstJust f (_:xs) = firstJust f xs
+firstJust _ [] = Nothing
 
 soapAction :: Request -> Maybe SoapAction
-soapAction req =
-  case find headerIsSoapAction (requestHeaders req) of
-   Just (_,"\"urn:StartSession\"") -> Just StartSession
-   Just (_,"\"urn:GetPhotoStatus\"") -> Just GetPhotoStatus
-   Just (_,"\"urn:MarkLastPhotoInRoll\"") -> Just MarkLastPhotoInRoll
-   Just (_,sa) -> error (notADefinedSoapAction (show sa))
-   _ -> Nothing
+soapAction req = firstJust headerToSoapAction (requestHeaders req)
 
 mkResponse :: String -> HEyefiM Response
 mkResponse responseBody = do

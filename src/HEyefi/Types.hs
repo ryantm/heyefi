@@ -45,3 +45,8 @@ data Config = Config {
 }
 
 type SharedConfig = TVar Config
+
+data SoapAction = StartSession
+                | GetPhotoStatus
+                | MarkLastPhotoInRoll
+                deriving (Show, Eq)
