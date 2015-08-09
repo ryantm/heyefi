@@ -14,6 +14,7 @@ import           HEyefi.Types
 
 
 import           Control.Arrow ((>>>))
+import           Control.Monad (join)
 import           Control.Monad.IO.Class (liftIO)
 import           Control.Monad.State.Lazy (get)
 import qualified Data.ByteString as B
@@ -23,6 +24,7 @@ import           Data.ByteString.Lazy.UTF8 (toString)
 import           Data.ByteString.UTF8 (fromString)
 import qualified Data.CaseInsensitive as CI
 import           Data.Hash.MD5 (md5s, Str (..))
+import           Data.List (find)
 import           Data.Maybe (fromJust, isJust)
 import           Data.Time.Clock (getCurrentTime, UTCTime)
 import           Data.Time.Format (
@@ -63,9 +65,7 @@ headerToSoapAction h |
 headerToSoapAction _ = Nothing
 
 firstJust :: (a -> Maybe b) -> [a] -> Maybe b
-firstJust f (x:_) | isJust (f x) = f x
-firstJust f (_:xs) = firstJust f xs
-firstJust _ [] = Nothing
+firstJust f = join . find isJust . map f
 
 soapAction :: Request -> Maybe SoapAction
 soapAction req = firstJust headerToSoapAction (requestHeaders req)
