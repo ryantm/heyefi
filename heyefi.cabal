@@ -79,6 +79,7 @@ test-suite test-heyefi
                   , iso8601-time
                   , warp
                   , wai
+                  , wai-extra
                   , http-types
                   , HandsomeSoup
                   , hxt
