@@ -28,6 +28,11 @@ spec = do
         it "should respond with status 200" (
            do
              sampleStartSessionRequest
+               `shouldRespondWith` 200))
+      describe "GetPhotoStatus" (
+        it "should respond with status 200" (
+           do
+             sampleStartSessionRequest
                `shouldRespondWith` 200)))
 
 app' :: IO Application
@@ -54,3 +59,10 @@ sampleStartSessionRequest =
 
 sampleStartSessionResponse :: ResponseMatcher
 sampleStartSessionResponse = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\"><SOAP-ENV:Body><StartSessionResponse xmlns=\"http://localhost/api/soap/eyefilm\"><credential>f9d03ddcce53582ff10075577e522373</credential><snonce>a0f6fc3983454d6da100c8ab5f3efa12</snonce><transfermode>34</transfermode><transfermodetimestamp>1356903384</transfermodetimestamp><upsyncallowed>true</upsyncallowed></StartSessionResponse></SOAP-ENV:Body></SOAP-ENV:Envelope>"
+
+sampleGetPhotoRequest :: WaiSession SResponse
+sampleGetPhotoRequest =
+  request
+  methodPost "/"
+  [(CI.mk "SoapAction",  "\"urn:GetPhotoRequest\"")]
+  ""
