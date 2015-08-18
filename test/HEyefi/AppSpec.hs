@@ -15,25 +15,22 @@ import HEyefi.Config
 
 
 spec :: Spec
-spec = do
+spec =
   with app' (
     do
       describe "MarkLastPhotoInRoll" (
         it "should respond with status 200" (
-           do
-             sampleMarkLastPhotoRequest
-               `shouldRespondWith`
-               sampleMarkLastPhotoInRollResponse {matchStatus = 200}))
+           sampleMarkLastPhotoRequest
+           `shouldRespondWith`
+           sampleMarkLastPhotoInRollResponse {matchStatus = 200}))
       describe "StartSession" (
         it "should respond with status 200" (
-           do
-             sampleStartSessionRequest
-               `shouldRespondWith` 200))
+           sampleStartSessionRequest
+           `shouldRespondWith` 200))
       describe "GetPhotoStatus" (
         it "should respond with status 200" (
-           do
-             sampleStartSessionRequest
-               `shouldRespondWith` 200)))
+           sampleStartSessionRequest
+           `shouldRespondWith` 200)))
 
 app' :: IO Application
 app' = do

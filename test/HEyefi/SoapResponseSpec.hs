@@ -9,5 +9,4 @@ spec :: Spec
 spec =
   describe "getPhotoStatusResponse"
     (it "should have GetPhotoStatusResponse element"
-     (do
-         getPhotoStatusResponse `shouldContain` "GetPhotoStatusResponse"))
+     (getPhotoStatusResponse `shouldContain` "GetPhotoStatusResponse"))

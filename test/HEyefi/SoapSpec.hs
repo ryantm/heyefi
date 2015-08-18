@@ -32,11 +32,11 @@ spec = do
     do
       it "should return StartSession for one"
         (headerToSoapAction (soapActionHeaderName, "\"urn:StartSession\"")
-            `shouldBe` (Just StartSession))
+            `shouldBe` Just StartSession)
       it "should return GetPhotoStatus for one"
         (headerToSoapAction (soapActionHeaderName, "\"urn:GetPhotoStatus\"")
-            `shouldBe` (Just GetPhotoStatus))
+            `shouldBe` Just GetPhotoStatus)
       it "should return MarkLastPhotoInRoll for one"
         (headerToSoapAction (soapActionHeaderName,
                              "\"urn:MarkLastPhotoInRoll\"")
-            `shouldBe` (Just MarkLastPhotoInRoll)))
+            `shouldBe` Just MarkLastPhotoInRoll))
