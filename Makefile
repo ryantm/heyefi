@@ -33,3 +33,7 @@ packunused :
 	cabal configure -O0 --disable-library-profiling
 	cabal build --ghc-option=-ddump-minimal-imports
 	packunused
+
+coverage :
+	cabal configure --enable-tests --enable-coverage
+	cabal test

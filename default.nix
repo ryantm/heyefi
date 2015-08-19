@@ -4,7 +4,7 @@
 , silently, stdenv, stm, tar, text, time, unix
 , unordered-containers, utf8-string, wai, wai-extra, warp, ghc, cabal-install
 , temporary, mtl, transformers, exceptions, random, hlint
-, optparse-applicative, packunused
+, optparse-applicative, packunused, hpc
 }:
 
 mkDerivation {
@@ -13,7 +13,7 @@ mkDerivation {
   src = ./.;
   isLibrary = false;
   isExecutable = true;
-  buildTools = [ ghc cabal-install hlint packunused];
+  buildTools = [ ghc cabal-install hlint packunused hpc ];
   buildDepends = [
     base bytestring case-insensitive configurator HandsomeSoup
     http-types hxt iso8601-time MissingH multipart stm tar
