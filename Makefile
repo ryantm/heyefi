@@ -35,5 +35,6 @@ packunused :
 	packunused
 
 coverage :
+	cabal clean
 	cabal configure --enable-tests --enable-coverage
 	cabal test
