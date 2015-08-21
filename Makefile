@@ -34,7 +34,7 @@ packunused :
 	cabal build --ghc-option=-ddump-minimal-imports
 	packunused
 
-coverage :
+setup_coverage :
 	cabal clean
 	cabal configure --enable-tests --enable-coverage
 	cabal test
