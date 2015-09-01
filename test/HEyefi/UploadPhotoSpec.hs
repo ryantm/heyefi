@@ -4,13 +4,30 @@ module HEyefi.UploadPhotoSpec where
 
 import qualified Data.ByteString.Lazy as BS
 import           System.Directory
-
+import           System.Posix.Files (setOwnerAndGroup)
+import           System.Posix.Types (
+    CUid (..)
+  , CGid (..)
+  )
+import           System.Posix.User
 import           Test.Hspec
-import           HEyefi.UploadPhoto
+import           System.Posix.Files (
+    setOwnerAndGroup
+  , fileOwner
+  , fileGroup
+  , getFileStatus
+  , FileStatus )
+
+
 import           HEyefi.Config
 import           HEyefi.Types
+import           HEyefi.UploadPhoto
 
+
+uploadDir :: FilePath
 uploadDir = "test_upload_dir"
+
+uploadConfig :: Config
 uploadConfig = emptyConfig { uploadDirectory = uploadDir }
 
 spec :: Spec
@@ -19,8 +36,15 @@ spec =
     (it "should write the file to the upload_dir" (
         do
           bs <- BS.readFile "test_upload_file.tar"
-          removeDirectory uploadDir
+          removeDirectoryRecursive uploadDir
           createDirectory uploadDir
-          runWithConfig uploadConfig (writeTarFile bs)
+          ge <- getGroupEntryForName "wheel"
+          ue <- getUserEntryForName "ryantm"
+          setOwnerAndGroup uploadDir (userID ue) (groupID ge)
+          _ <- runWithConfig uploadConfig (writeTarFile bs)
           contents <- getDirectoryContents uploadDir
-          length contents `shouldBe` 3))
+          length contents `shouldBe` 3
+          let f = "test_upload_dir/test_upload_file.txt"
+          fs <- getFileStatus f
+          fileGroup fs `shouldBe` groupID ge
+          fileOwner fs `shouldBe` userID ue))
