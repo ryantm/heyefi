@@ -32,8 +32,10 @@ There is a NixOS service definition for heyefi. It currently only supports one c
 Complete example configuration:
 
 ````nix
+{
   services.heyefi.enable = true;
   services.heyefi.cardMacaddress = "0012342de4ce";
   services.heyefi.uploadKey = "e7403a0123402ca062";
   services.heyefi.uploadDir = /data/unsorted;
+}
 ````
