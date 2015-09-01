@@ -4,7 +4,7 @@ heyefi is a Linux system daemon that listens for Eye-Fi SD card and processes th
 
 # Installation
 
-heyefi is meant to be run as a system daemon. It currently needs to run as root, to make the file permissions part work with less configuration. (It currently sets the permissions of the files to the same as the upload directory. Let me know if you have ideas on how to do that without being root!) It expects a configuration file to be at /etc/heyefi/heyefi.config.
+heyefi is meant to be run as a system daemon. It currently needs to run as root, to make the file permissions part work with less configuration. (It currently sets the permissions of the files to the same as the upload directory. Let me know if you have ideas on how to do that [without being root](https://github.com/ryantm/heyefi/issues/4)!) It expects a configuration file to be at /etc/heyefi/heyefi.config.
 
 # Distributions
 
