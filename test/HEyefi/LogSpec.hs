@@ -18,16 +18,16 @@ currentTime = do
 spec :: Spec
 spec = do
   describe "logDebug" (do
-    (it "should output nothing when debugging is not enabled" (
+    it "should output nothing when debugging is not enabled" (
         do
           result <- capture_ (runWithEmptyConfig (logDebug "hi"))
-          result `shouldBe` ""))
-    (it "should output somethign when debugging enabled" (
+          result `shouldBe` "")
+    it "should output somethign when debugging enabled" (
         do
           let config = emptyConfig { logLevel = Debug }
           result <- capture_ (runWithConfig config (logDebug "hi"))
           result `shouldContain` "Debug"
-          result `shouldContain` "hi")))
+          result `shouldContain` "hi"))
   describe "logInfo"
     (it "should output something" (
         do
