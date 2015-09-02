@@ -4,11 +4,6 @@ module HEyefi.UploadPhotoSpec where
 
 import qualified Data.ByteString.Lazy as BS
 import           System.Directory
-import           System.Posix.Files (setOwnerAndGroup)
-import           System.Posix.Types (
-    CUid (..)
-  , CGid (..)
-  )
 import           System.Posix.User
 import           Test.Hspec
 import           System.Posix.Files (
@@ -16,7 +11,7 @@ import           System.Posix.Files (
   , fileOwner
   , fileGroup
   , getFileStatus
-  , FileStatus )
+  )
 
 
 import           HEyefi.Config
