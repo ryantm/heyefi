@@ -64,7 +64,7 @@ writeTarFile file = do
 
 handleUpload :: BL.ByteString -> HEyefiApplication
 handleUpload body _ f = do
-  logInfo gotUploadRequest
+  logDebug gotUploadRequest
   let MultiPart bodyParts = parseMultipartBody multipartBodyBoundary body
   logDebug (show (length bodyParts))
   lBP bodyParts
