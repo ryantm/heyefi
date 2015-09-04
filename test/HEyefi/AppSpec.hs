@@ -3,19 +3,33 @@
 module HEyefi.AppSpec where
 
 import Control.Concurrent.STM
+import Data.ByteString.Lazy (toStrict)
 import Data.CaseInsensitive as CI
+import Data.Text (Text, isInfixOf)
+import Data.Text.Encoding (decodeUtf8)
 import Network.HTTP.Types.Method
 import Network.Wai (Application)
-import Network.Wai.Test (SResponse)
+import Network.Wai.Test (SResponse (simpleBody))
 import Test.Hspec
 import Test.Hspec.Wai
+import Test.Hspec.Wai.Internal
+
 
 import HEyefi.App
 import HEyefi.Config
 
 
+
 spec :: Spec
-spec =
+spec = do
+  describe "StartSession" (
+    it "should return expected body" (
+       do
+         a <- app'
+         action <- runWaiSession sampleStartSessionRequest a
+         responseBodyContains action sampleStartSessionResponse1 `shouldBe` True
+         responseBodyContains action sampleStartSessionResponse2
+           `shouldBe` True))
   with app' (
     do
       describe "MarkLastPhotoInRoll" (
@@ -31,6 +45,12 @@ spec =
         it "should respond with status 200" (
            sampleStartSessionRequest
            `shouldRespondWith` 200)))
+
+responseBodyContains :: SResponse -> Text -> Bool
+responseBodyContains r t =
+  t
+  `isInfixOf`
+  (decodeUtf8 . toStrict) (simpleBody r)
 
 app' :: IO Application
 app' = do
@@ -54,8 +74,11 @@ sampleStartSessionRequest =
   [(CI.mk "SoapAction",  "\"urn:StartSession\"")]
   "<?xml version=\"1.0\" encoding=\"UTF-8\"?><SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns1=\"EyeFi/SOAP/EyeFilm\"><SOAP-ENV:Body><ns1:StartSession><macaddress>0018562de4ce</macaddress><cnonce>6eb0444343c1953e47fb28181bb4e47f</cnonce><transfermode>34</transfermode><transfermodetimestamp>1356903384</transfermodetimestamp></ns1:StartSession></SOAP-ENV:Body></SOAP-ENV:Envelope>"
 
-sampleStartSessionResponse :: ResponseMatcher
-sampleStartSessionResponse = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\"><SOAP-ENV:Body><StartSessionResponse xmlns=\"http://localhost/api/soap/eyefilm\"><credential>f9d03ddcce53582ff10075577e522373</credential><snonce>a0f6fc3983454d6da100c8ab5f3efa12</snonce><transfermode>34</transfermode><transfermodetimestamp>1356903384</transfermodetimestamp><upsyncallowed>true</upsyncallowed></StartSessionResponse></SOAP-ENV:Body></SOAP-ENV:Envelope>"
+sampleStartSessionResponse1 :: Text
+sampleStartSessionResponse1 = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\"><SOAP-ENV:Body><StartSessionResponse xmlns=\"http://localhost/api/soap/eyefilm\"><credential>f9d03ddcce53582ff10075577e522373</credential><snonce>"
+
+sampleStartSessionResponse2 :: Text
+sampleStartSessionResponse2 = "</snonce><transfermode>34</transfermode><transfermodetimestamp>1356903384</transfermodetimestamp><upsyncallowed>true</upsyncallowed></StartSessionResponse></SOAP-ENV:Body></SOAP-ENV:Envelope>"
 
 sampleGetPhotoRequest :: WaiSession SResponse
 sampleGetPhotoRequest =
