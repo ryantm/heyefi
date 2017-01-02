@@ -39,3 +39,7 @@ Complete example configuration:
   services.heyefi.uploadDir = /data/unsorted;
 }
 ````
+
+# Changelog
+
+1.1.0.0 2017-01-02 fixed build of version 0.13.0.0 of optparse-applicative, which removes Data.Monoid exports

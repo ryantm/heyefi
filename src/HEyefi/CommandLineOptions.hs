@@ -2,6 +2,7 @@ module HEyefi.CommandLineOptions where
 
 import HEyefi.Strings
 
+import Data.Monoid ((<>))
 import Data.Version (showVersion)
 import Options.Applicative
 import Options.Applicative.Types
