@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module HEyefi.App where
 
 import           HEyefi.Config (runWithConfig)

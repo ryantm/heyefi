@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module HEyefi.Soap where
 
 import           HEyefi.Config (getUploadKeyForMacaddress)

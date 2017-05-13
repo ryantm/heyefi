@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module HEyefi.AppSpec where
 
 import Control.Concurrent.STM

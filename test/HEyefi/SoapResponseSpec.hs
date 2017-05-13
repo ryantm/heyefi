@@ -1,4 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
 module HEyefi.SoapResponseSpec where
 
 import Test.Hspec

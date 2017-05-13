@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module HEyefi.SoapResponse where
 
 import Control.Arrow ((>>>))

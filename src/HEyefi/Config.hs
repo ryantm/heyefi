@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module HEyefi.Config where
 
 import           HEyefi.Types (

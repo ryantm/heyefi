@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module HEyefi.UploadPhoto where
 
 import           HEyefi.Constant (multipartBodyBoundary)

@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module HEyefi.StartSession where
 
 import HEyefi.Config (getUploadKeyForMacaddress, putSNonce)

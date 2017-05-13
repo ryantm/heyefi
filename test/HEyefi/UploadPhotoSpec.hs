@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module HEyefi.UploadPhotoSpec where
 
 import qualified Data.ByteString.Lazy as BS

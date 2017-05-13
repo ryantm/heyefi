@@ -1,4 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
 module HEyefi.StartSessionSpec where
 
 import Test.Hspec

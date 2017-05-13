@@ -27,6 +27,7 @@ executable heyefi
   main-is: HEyefi/Main.hs
   hs-source-dirs:
       src
+  default-extensions: OverloadedStrings ScopedTypeVariables GeneralizedNewtypeDeriving
   ghc-options: -Wall
   build-depends:
       base >=4.8 && <=5
@@ -77,6 +78,7 @@ test-suite spec
   hs-source-dirs:
       test
       src
+  default-extensions: OverloadedStrings ScopedTypeVariables GeneralizedNewtypeDeriving
   ghc-options: -Wall
   build-depends:
       base >=4.8 && <=5

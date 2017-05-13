@@ -1,5 +1,3 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-
 module HEyefi.Types where
 
 import           Control.Concurrent.STM (TVar)
