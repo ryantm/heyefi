@@ -1,0 +1,10 @@
+resolver: lts-8.13
+packages:
+- '.'
+extra-deps: []
+flags: {}
+extra-package-dbs: []
+
+nix:
+  enable: false
+  packages: [zlib]

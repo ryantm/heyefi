@@ -1,0 +1,63 @@
+name: heyefi
+version: 1.1.0.0
+synopsis: A server for Eye-Fi SD cards.
+description: This server listens for Eye-Fi cards that want to upload files to a computer and stores them in an upload directory. It is meant to be run as a system daemon.
+homepage: https://github.com/ryantm/heyefi
+license: PublicDomain
+license-file: LICENSE
+author: Ryan Mulligan
+maintainer: ryan@ryantm.com
+category: Network
+
+ghc-options: -Wall
+
+github: ryantm/heyefi
+
+extra-source-files:
+- README.md
+
+dependencies:
+- base >=4.8 && <=5
+- stm
+- unix
+- MissingH
+- bytestring
+- utf8-string
+- time
+- iso8601-time
+- warp
+- wai
+- http-types
+- HandsomeSoup
+- hxt
+- case-insensitive
+- multipart
+- tar
+- configurator
+- unordered-containers
+- text
+- temporary
+- directory
+- filepath
+- mtl
+- transformers
+- exceptions
+- random
+- optparse-applicative
+
+executables:
+  heyefi:
+    source-dirs:      src
+    main:             HEyefi/Main.hs
+
+tests:
+  spec:
+    main: Spec.hs
+    source-dirs:
+      - test
+      - src
+    dependencies:
+      - hspec
+      - hspec-wai
+      - wai-extra
+      - silently
