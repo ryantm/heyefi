@@ -1,5 +1,6 @@
 module HEyefi.UploadPhotoSpec where
 
+import           Control.Monad
 import qualified Data.ByteString.Lazy as BS
 import           System.Directory
 import           System.Posix.User
@@ -23,13 +24,19 @@ uploadDir = "test_upload_dir"
 uploadConfig :: Config
 uploadConfig = emptyConfig { uploadDirectory = uploadDir }
 
+removeUploadDir :: IO ()
+removeUploadDir = do
+  pathExists <- doesPathExist uploadDir
+  when pathExists
+    (removeDirectoryRecursive uploadDir)
+
 spec :: Spec
 spec =
   describe "writeTarFile"
     (it "should write the file to the upload_dir" (
         do
           bs <- BS.readFile "test_upload_file.tar"
-          removeDirectoryRecursive uploadDir
+          removeUploadDir
           createDirectory uploadDir
           ge <- getGroupEntryForName "wheel"
           ue <- getUserEntryForName "ryantm"
@@ -40,4 +47,5 @@ spec =
           let f = "test_upload_dir/test_upload_file.txt"
           fs <- getFileStatus f
           fileGroup fs `shouldBe` groupID ge
-          fileOwner fs `shouldBe` userID ue))
+          fileOwner fs `shouldBe` userID ue
+          removeUploadDir))
