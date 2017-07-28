@@ -25,7 +25,7 @@ import           Control.Monad.Catch (
   , Handler (..)
   , SomeException (..))
 import           Control.Monad.IO.Class (liftIO)
-import           Control.Monad.State.Lazy (get, put, runStateT)
+import           Control.Monad.State.Lazy (modify, get, runStateT)
 import           Data.Configurator (load, Worth (Required), getMap)
 import           Data.Configurator.Types (Value, ConfigError (ParseError))
 import qualified Data.Configurator.Types as CT
@@ -152,11 +152,6 @@ getUploadKeyForMacaddress mac = do
   return (fmap unpack (HM.lookup (pack mac) (cardMap c)))
 
 putSNonce :: String -> HEyefiM ()
-putSNonce snonce = do
-  c <- get
-  put Config {
-          cardMap = cardMap c,
-          uploadDirectory = uploadDirectory c,
-          logLevel = logLevel c,
-          lastSNonce = snonce
-          }
+putSNonce snonce =
+  modify (\ s ->
+            s { lastSNonce = snonce })
