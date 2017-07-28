@@ -66,9 +66,11 @@ handleUpload body _ f = do
   let MultiPart bodyParts = parseMultipartBody multipartBodyBoundary body
   logDebug (show (length bodyParts))
   lBP bodyParts
-  let (BodyPart _ soapEnvelope) = head bodyParts
-  let (BodyPart _ file) = bodyParts !! 1
-  let (BodyPart _ digest) = bodyParts !! 2
+
+  let [  BodyPart _ soapEnvelope
+       , BodyPart _ file
+       , BodyPart _ digest
+       ] = bodyParts
 
   outputPath <- writeTarFile file
   logInfo (uploadedTo outputPath)
