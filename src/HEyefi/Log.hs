@@ -1,27 +1,31 @@
 module HEyefi.Log where
+import           HEyefi.Types (HEyefiM, LogLevel(..), logLevel)
+import           HEyefi.Prelude
 
-import HEyefi.Types (HEyefiM, LogLevel(..), logLevel)
+import           Control.Monad.IO.Class (liftIO)
+import           Control.Monad.State.Lazy (get)
+import           Data.Monoid ((<>))
+import           Data.Text (Text)
+import qualified Data.Text.IO as T
+import qualified Data.Text as T
+import           Data.Time.Clock (getCurrentTime)
+import           Data.Time.ISO8601 (formatISO8601Millis)
 
-import Control.Monad.IO.Class (liftIO)
-import Control.Monad.State.Lazy (get)
-import Data.Time.Clock (getCurrentTime)
-import Data.Time.ISO8601 (formatISO8601Millis)
-
-log' :: LogLevel -> String -> IO ()
+log' :: LogLevel -> Text -> IO ()
 log' ll s = do
   t <- getCurrentTime
-  putStrLn (unwords [
-                 "[" ++ formatISO8601Millis t ++ "]"
-               , "[" ++ show ll ++ "]"
+  T.putStrLn (T.unwords [
+                 "[" <> T.pack (formatISO8601Millis t) <> "]"
+               , "[" <> T.pack (show ll) <> "]"
                , s])
 
-logInfoIO :: String -> IO ()
+logInfoIO :: Text -> IO ()
 logInfoIO = log' Info
 
-logInfo ::  String -> HEyefiM ()
+logInfo ::  Text -> HEyefiM ()
 logInfo = liftIO . logInfoIO
 
-logDebug :: String -> HEyefiM ()
+logDebug :: Text -> HEyefiM ()
 logDebug s = do
   config <- get
   case logLevel config of

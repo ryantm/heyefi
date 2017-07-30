@@ -1,15 +1,18 @@
 module HEyefi.App where
 
-import           HEyefi.Config (runWithConfig)
-import           HEyefi.Log (logDebug)
-import           HEyefi.Soap (handleSoapAction, soapAction)
-import           HEyefi.Strings
-import           HEyefi.Types (SharedConfig, HEyefiApplication)
-import           HEyefi.UploadPhoto (handleUpload)
-
+import           Control.Concurrent.STM (
+    atomically
+  , writeTVar
+  , readTVar )
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
 import           Data.Maybe (isJust, fromJust, isNothing)
+import           HEyefi.Config (runWithConfig)
+import           HEyefi.Log (logDebug)
+import           HEyefi.Prelude
+import           HEyefi.Soap (handleSoapAction, soapAction)
+import           HEyefi.Types (SharedConfig, HEyefiApplication)
+import           HEyefi.UploadPhoto (handleUpload)
 import           Network.Wai (
     Application
   , Request
@@ -17,18 +20,14 @@ import           Network.Wai (
   , requestBody
   , requestMethod
   , requestHeaders )
-import           Control.Concurrent.STM (
-    atomically
-  , writeTVar
-  , readTVar )
 
 app :: SharedConfig -> Application
 app sharedConfig req f = do
   config <- atomically (readTVar sharedConfig)
   body <- getWholeRequestBody req
   (result, config') <- runWithConfig config (do
-                  logDebug (show (pathInfo req))
-                  logDebug (show (requestHeaders req))
+                  logDebug (tshow (pathInfo req))
+                  logDebug (tshow (requestHeaders req))
                   dispatchRequest (BL.fromStrict body) req f)
   atomically (writeTVar sharedConfig config')
   return result
@@ -43,7 +42,7 @@ dispatchRequest body req f
   | requestMethod req == "POST" &&
     isJust (soapAction req) =
       handleSoapAction (fromJust (soapAction req)) body req f
-dispatchRequest _ _ _ = error didNotMatchDispatch
+dispatchRequest _ _ _ = terror didNotMatchDispatch
 
 getWholeRequestBody :: Request -> IO B.ByteString
 getWholeRequestBody request = do

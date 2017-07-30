@@ -19,6 +19,7 @@ default-extensions:
 - OverloadedStrings
 - ScopedTypeVariables
 - GeneralizedNewtypeDeriving
+- NoImplicitPrelude
 
 dependencies:
 - base >=4.8 && <=5

@@ -1,5 +1,6 @@
 module HEyefi.CommandLineOptions where
 
+import HEyefi.Prelude
 import HEyefi.Strings
 
 import Data.Monoid ((<>))

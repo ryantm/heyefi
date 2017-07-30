@@ -5,16 +5,14 @@ import Data.ByteString.Lazy (toStrict)
 import Data.CaseInsensitive as CI
 import Data.Text (Text, isInfixOf)
 import Data.Text.Encoding (decodeUtf8)
+import HEyefi.App
+import HEyefi.Config
+import HEyefi.SpecPrelude
 import Network.HTTP.Types.Method
 import Network.Wai (Application)
 import Network.Wai.Test (SResponse (simpleBody))
-import Test.Hspec
 import Test.Hspec.Wai
 import Test.Hspec.Wai.Internal
-
-
-import HEyefi.App
-import HEyefi.Config
 
 
 

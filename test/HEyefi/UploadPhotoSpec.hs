@@ -16,6 +16,7 @@ import           System.Posix.Files (
 import           HEyefi.Config
 import           HEyefi.Types
 import           HEyefi.UploadPhoto
+import           HEyefi.SpecPrelude
 
 
 uploadDir :: FilePath

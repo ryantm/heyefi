@@ -1,5 +1,7 @@
 module HEyefi.Types where
 
+import HEyefi.Prelude
+
 import           Control.Concurrent.STM (TVar)
 import           Control.Monad.Catch (MonadMask, MonadCatch, MonadThrow)
 import           Control.Monad.IO.Class (MonadIO)
@@ -39,7 +41,7 @@ data Config = Config {
   cardMap :: CardConfig,
   uploadDirectory :: FilePath,
   logLevel :: LogLevel,
-  lastSNonce :: String
+  lastSNonce :: Text
 }
 
 type SharedConfig = TVar Config

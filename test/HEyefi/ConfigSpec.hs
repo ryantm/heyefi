@@ -3,7 +3,8 @@ module HEyefi.ConfigSpec where
 import           Test.Hspec
 
 import           HEyefi.Config
-import           HEyefi.Types(cardMap, uploadDirectory, Config)
+import           HEyefi.Prelude
+import           HEyefi.Types (cardMap, uploadDirectory, Config)
 
 import           Control.Exception (catch, SomeException, throwIO)
 import qualified Data.HashMap.Strict as HM
@@ -25,18 +26,19 @@ getNonexistentTemporaryFile = do
   removeIfExists file
   return file
 
-makeAndReloadFile_ :: String -> IO String
+makeAndReloadFile_ :: Text -> IO Text
 makeAndReloadFile_ s = fmap fst (makeAndReloadFile s)
 
-makeAndReloadFile :: String -> IO (String, Config)
+makeAndReloadFile :: Text -> IO (Text, Config)
 makeAndReloadFile contents = do
   file <- getNonexistentTemporaryFile
   writeFile file contents
-  capture (do
-              r <- runWithEmptyConfig (reloadConfig file)
-              return (fst r))
+  (a,b) <- capture (do
+                       r <- runWithEmptyConfig (reloadConfig file)
+                       return (fst r))
+  return (pack a, b)
 
-validConfig :: String
+validConfig :: Text
 validConfig = "upload_dir = \"/data/photos\"\ncards = [[\"0012342de4ce\",\"e7403a0123402ca062\"],[\"1234562d5678\",\"12342a062\"]]"
 
 spec :: Spec
@@ -55,24 +57,24 @@ spec =
      (do
          (output, config) <- makeAndReloadFile "a = (\n"
          cardMap config `shouldBe` HM.empty
-         output `shouldContain` "Error parsing configuration file at "
-         output `shouldContain` "with message: endOfInput")
+         unpack output `shouldContain` "Error parsing configuration file at "
+         unpack output `shouldContain` "with message: endOfInput")
     it "should complain about missing cards configuration"
      (do
          (output, config) <- makeAndReloadFile "upload_dir = \"/data/annex/doxie/unsorted\""
          cardMap config `shouldBe` HM.empty
-         output `shouldContain` "missing a definition for `cards`.")
+         unpack output `shouldContain` "missing a definition for `cards`.")
     it "should complain about cards not having the correct format"
      (do
          (_, config) <- makeAndReloadFile "upload_dir = \"/data/annex/doxie/unsorted\"\ncards=[[\"1\",\"2\",\"3\"]]"
          cardMap config `shouldBe` HM.empty
          output2 <- makeAndReloadFile_ "upload_dir = \"/data/annex/doxie/unsorted\"\ncards=\"1\""
-         output2 `shouldContain` "Format of cards does not match")
+         unpack output2 `shouldContain` "Format of cards does not match")
     it "should complain about missing upload_dir configuration"
      (do
          (output, config) <-  makeAndReloadFile "cards = [[\"0012342de4ce\",\"e7403a0123402ca062\"],[\"1234562d5678\",\"12342a062\"]]"
          uploadDirectory config `shouldBe` ""
-         output `shouldContain`"missing a definition for `upload_dir`.")
+         unpack output `shouldContain`"missing a definition for `upload_dir`.")
     it "should parse cards for a valid configuration"
      (do
          (_, config) <- makeAndReloadFile validConfig

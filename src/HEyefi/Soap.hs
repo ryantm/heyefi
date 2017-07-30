@@ -1,16 +1,5 @@
 module HEyefi.Soap where
 
-import           HEyefi.Config (getUploadKeyForMacaddress)
-import           HEyefi.Hex (unhex)
-import           HEyefi.Log (logInfo, logDebug)
-import           HEyefi.SoapResponse (
-    markLastPhotoInRollResponse
-  , getPhotoStatusResponse )
-import           HEyefi.StartSession (startSessionResponse)
-import           HEyefi.Strings
-import           HEyefi.Types
-
-
 import           Control.Arrow ((>>>))
 import           Control.Monad (join)
 import           Control.Monad.IO.Class (liftIO)
@@ -21,14 +10,23 @@ import qualified Data.ByteString.Lazy as BL
 import           Data.ByteString.Lazy.UTF8 (toString)
 import           Data.ByteString.UTF8 (fromString)
 import qualified Data.CaseInsensitive as CI
-import           Data.Hash.MD5 (md5s, Str (..))
 import           Data.List (find)
 import           Data.Maybe (fromJust, isJust)
+import           Data.Text.Encoding (encodeUtf8)
 import           Data.Time.Clock (getCurrentTime, UTCTime)
 import           Data.Time.Format (
     formatTime
   , rfc822DateFormat
   , defaultTimeLocale )
+import           HEyefi.Config (getUploadKeyForMacaddress)
+import           HEyefi.Hex (unhex)
+import           HEyefi.Log (logInfo, logDebug)
+import           HEyefi.Prelude
+import           HEyefi.SoapResponse (
+    markLastPhotoInRollResponse
+  , getPhotoStatusResponse )
+import           HEyefi.StartSession (startSessionResponse)
+import           HEyefi.Types
 import           Network.HTTP.Types (status200, unauthorized401)
 import           Network.HTTP.Types.Header (
     hContentType
@@ -68,13 +66,13 @@ firstJust f = join . find isJust . map f
 soapAction :: Request -> Maybe SoapAction
 soapAction req = firstJust headerToSoapAction (requestHeaders req)
 
-mkResponse :: String -> HEyefiM Response
+mkResponse :: Text -> HEyefiM Response
 mkResponse responseBody = do
   t <- liftIO getCurrentTime
   return (responseLBS
           status200
-          (defaultResponseHeaders t (length responseBody))
-          (fromStrict (fromString responseBody)))
+          (defaultResponseHeaders t (tlength responseBody))
+          (fromStrict (encodeUtf8 responseBody)))
 
 mkUnauthorizedResponse :: Response
 mkUnauthorizedResponse = responseLBS unauthorized401 [] ""
@@ -90,10 +88,11 @@ defaultResponseHeaders time size =
   , (hContentLength, fromString (show size))]
 
 firstTag :: BL.ByteString ->
-            String ->
-            String
+            Text ->
+            Text
 firstTag body tagName =
-  head (runLA (xreadDoc >>> css tagName /> getText) (toString body))
+  pack (head (runLA (xreadDoc >>> css (unpack tagName) /> getText)
+                (toString body)))
 
 handleSoapAction :: SoapAction -> BL.ByteString -> HEyefiApplication
 handleSoapAction StartSession body _ f = do
@@ -103,14 +102,14 @@ handleSoapAction StartSession body _ f = do
   let cnonce = tag "cnonce"
   let transfermode = tag "transfermode"
   let transfermodetimestamp = tag "transfermodetimestamp"
-  logDebug (show macaddress)
-  logDebug (show transfermodetimestamp)
+  logDebug macaddress
+  logDebug transfermodetimestamp
   responseBody <- startSessionResponse
                    macaddress
                    cnonce
                    transfermode
                    transfermodetimestamp
-  logDebug (show responseBody)
+  logDebug responseBody
   response <- mkResponse responseBody
   liftIO (f response)
 handleSoapAction GetPhotoStatus body _ f = do
@@ -139,9 +138,9 @@ checkCredential body = do
      logInfo (noUploadKeyInConfiguration macaddress)
      return False
    Just upload_key_0' -> do
-     let credentialString = macaddress ++ upload_key_0' ++ snonce
+     let credentialString = macaddress <> upload_key_0' <> snonce
      let binaryCredentialString = unhex credentialString
-     let expectedCredential = md5s (Str (fromJust binaryCredentialString))
+     let expectedCredential = tmd5 (fromJust binaryCredentialString)
      if credential /= expectedCredential then do
        logInfo (invalidCredential expectedCredential credential)
        return False

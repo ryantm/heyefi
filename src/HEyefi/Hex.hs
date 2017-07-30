@@ -1,13 +1,17 @@
 module HEyefi.Hex where
 
-unhex :: String -> Maybe String
-unhex [] = Just []
-unhex (a:b:xs) = do
-  first <- c a
-  second <- c b
-  rest <- unhex xs
-  return (toEnum ((first * 16) + second) : rest)
-unhex _ = Nothing
+import HEyefi.Prelude
+
+unhex :: Text -> Maybe Text
+unhex = unpack >>> go >>> fmap pack
+  where
+    go [] = Just []
+    go (a:b:xs) = do
+      first <- c a
+      second <- c b
+      rest <- go xs
+      return (toEnum ((first * 16) + second) : rest)
+    go _ = Nothing
 
 c :: Char -> Maybe Int
 c '0' = Just 0

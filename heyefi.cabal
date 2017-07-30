@@ -27,7 +27,7 @@ executable heyefi
   main-is: HEyefi/Main.hs
   hs-source-dirs:
       src
-  default-extensions: OverloadedStrings ScopedTypeVariables GeneralizedNewtypeDeriving
+  default-extensions: OverloadedStrings ScopedTypeVariables GeneralizedNewtypeDeriving NoImplicitPrelude
   ghc-options: -Wall -Werror
   build-depends:
       base >=4.8 && <=5
@@ -64,10 +64,11 @@ executable heyefi
       HEyefi.Constant
       HEyefi.Hex
       HEyefi.Log
+      HEyefi.Prelude
       HEyefi.Soap
       HEyefi.SoapResponse
       HEyefi.StartSession
-      HEyefi.Strings
+      HEyefi.Texts
       HEyefi.Types
       HEyefi.UploadPhoto
   default-language: Haskell2010
@@ -78,7 +79,7 @@ test-suite spec
   hs-source-dirs:
       test
       src
-  default-extensions: OverloadedStrings ScopedTypeVariables GeneralizedNewtypeDeriving
+  default-extensions: OverloadedStrings ScopedTypeVariables GeneralizedNewtypeDeriving NoImplicitPrelude
   ghc-options: -Wall -Werror
   build-depends:
       base >=4.8 && <=5
@@ -118,6 +119,7 @@ test-suite spec
       HEyefi.LogSpec
       HEyefi.SoapResponseSpec
       HEyefi.SoapSpec
+      HEyefi.SpecPrelude
       HEyefi.StartSessionSpec
       HEyefi.UploadPhotoSpec
       HEyefi.App
@@ -127,10 +129,11 @@ test-suite spec
       HEyefi.Hex
       HEyefi.Log
       HEyefi.Main
+      HEyefi.Prelude
       HEyefi.Soap
       HEyefi.SoapResponse
       HEyefi.StartSession
-      HEyefi.Strings
+      HEyefi.Texts
       HEyefi.Types
       HEyefi.UploadPhoto
   default-language: Haskell2010

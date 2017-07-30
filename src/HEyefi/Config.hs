@@ -1,5 +1,7 @@
 module HEyefi.Config where
 
+import           HEyefi.Log (logInfo)
+import           HEyefi.Prelude
 import           HEyefi.Types (
     Config(..)
   , CardConfig
@@ -9,8 +11,6 @@ import           HEyefi.Types (
   , uploadDirectory
   , logLevel
   , HEyefiM(..))
-import           HEyefi.Log (logInfo)
-import           HEyefi.Strings
 
 import           Control.Concurrent.STM (
     TVar
@@ -32,7 +32,8 @@ import qualified Data.Configurator.Types as CT
 import           Data.HashMap.Strict ()
 import qualified Data.HashMap.Strict as HM
 import           Data.Maybe (mapMaybe)
-import           Data.Text (Text, unpack, pack)
+import           Data.Text (Text)
+import qualified Data.Text as T
 
 insertCard :: Text -> Text -> Config -> Config
 insertCard macAddress uploadKey c =
@@ -51,7 +52,7 @@ waitForWake wakeSig = liftIO (atomically (
       Just _ -> writeTVar wakeSig Nothing
       Nothing -> retry))
 
-convertCardList :: Value -> Either String [(Text, Text)]
+convertCardList :: Value -> Either Text [(Text, Text)]
 convertCardList (CT.List innerList) =
   Right (mapMaybe extractTuple innerList)
   where
@@ -76,9 +77,9 @@ getCardConfig configMap = do
       Right cardList ->
         return (HM.fromList cardList)
 
-convertUploadDirectory :: Value -> Either String FilePath
+convertUploadDirectory :: Value -> Either Text FilePath
 convertUploadDirectory (CT.String uploadDir) =
-  Right (unpack uploadDir)
+  Right (T.unpack uploadDir)
 convertUploadDirectory _ =
   Left uploadDirFormatDoesNotMatch
 
@@ -99,7 +100,7 @@ getUploadDirectory configMap = do
 
 reloadConfig :: FilePath -> HEyefiM Config
 reloadConfig configPath = do
-  logInfo (tryingToLoadConfiguration configPath)
+  logInfo (tryingToLoadConfiguration (T.pack configPath))
   catches (
     do
       config <- liftIO (load [Required configPath])
@@ -114,10 +115,10 @@ reloadConfig configPath = do
         lastSNonce = "" } -- TODO: Careful, we might be erasing something here.
     )
     [Handler (\(ParseError p msg) -> do
-                 logInfo (errorParsingConfigurationFile p msg)
+                 logInfo (errorParsingConfigurationFile (T.pack p) (T.pack msg))
                  return emptyConfig),
      Handler (\(SomeException _) -> do
-                 logInfo (couldNotFindConfigurationFile configPath)
+                 logInfo (couldNotFindConfigurationFile (T.pack configPath))
                  return emptyConfig)]
 
 runWithConfig :: Config -> HEyefiM a -> IO (a,Config)
@@ -146,12 +147,12 @@ monitorConfig configPath sharedConfig wakeSignal =
         liftIO (atomically (writeTVar sharedConfig config)))
     (waitForWake wakeSignal)
 
-getUploadKeyForMacaddress :: String -> HEyefiM (Maybe String)
+getUploadKeyForMacaddress :: Text -> HEyefiM (Maybe Text)
 getUploadKeyForMacaddress mac = do
   c <- get
-  return (fmap unpack (HM.lookup (pack mac) (cardMap c)))
+  return (HM.lookup mac (cardMap c))
 
-putSNonce :: String -> HEyefiM ()
+putSNonce :: Text -> HEyefiM ()
 putSNonce snonce =
   modify (\ s ->
             s { lastSNonce = snonce })

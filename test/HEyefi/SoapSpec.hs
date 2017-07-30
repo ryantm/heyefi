@@ -1,6 +1,6 @@
 module HEyefi.SoapSpec where
 
-import Test.Hspec
+import HEyefi.SpecPrelude
 
 import HEyefi.Soap
 import HEyefi.Types

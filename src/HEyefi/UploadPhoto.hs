@@ -1,16 +1,15 @@
 module HEyefi.UploadPhoto where
 
-import           HEyefi.Constant (multipartBodyBoundary)
-import           HEyefi.Log (logDebug, logInfo)
-import           HEyefi.Soap (mkResponse)
-import           HEyefi.SoapResponse (soapResponse, uploadPhotoResponse)
-import           HEyefi.Strings
-import           HEyefi.Types (uploadDirectory, HEyefiM, HEyefiApplication)
-
 import           Codec.Archive.Tar (extract)
 import           Control.Monad.IO.Class (liftIO)
 import           Control.Monad.State.Lazy (get)
 import qualified Data.ByteString.Lazy as BL
+import           HEyefi.Constant (multipartBodyBoundary)
+import           HEyefi.Log (logDebug, logInfo)
+import           HEyefi.Prelude
+import           HEyefi.Soap (mkResponse)
+import           HEyefi.SoapResponse (soapResponse, uploadPhotoResponse)
+import           HEyefi.Types (uploadDirectory, HEyefiM, HEyefiApplication)
 import           Network.Multipart (
     parseMultipartBody
   , MultiPart (..)
@@ -25,6 +24,7 @@ import           System.Posix.Files (
   , fileGroup
   , getFileStatus
   , FileStatus )
+
 
 
 copyMatchingOwnership :: FileStatus -> FilePath -> FilePath -> IO FilePath
@@ -63,8 +63,8 @@ writeTarFile file = do
 handleUpload :: BL.ByteString -> HEyefiApplication
 handleUpload body _ f = do
   logDebug gotUploadRequest
-  let MultiPart bodyParts = parseMultipartBody multipartBodyBoundary body
-  logDebug (show (length bodyParts))
+  let MultiPart bodyParts = parseMultipartBody (unpack multipartBodyBoundary) body
+  logDebug (tshow (length bodyParts))
   lBP bodyParts
 
   let [  BodyPart _ soapEnvelope
@@ -73,18 +73,18 @@ handleUpload body _ f = do
        ] = bodyParts
 
   outputPath <- writeTarFile file
-  logInfo (uploadedTo outputPath)
+  logInfo (uploadedTo (pack outputPath))
 
-  logDebug (show soapEnvelope)
-  logDebug (show digest)
+  logDebug (tshow soapEnvelope)
+  logDebug (tshow digest)
   let responseBody = soapResponse uploadPhotoResponse
-  logDebug (show responseBody)
+  logDebug responseBody
   r <- mkResponse responseBody
   liftIO (f r)
 
   where
     lBP [] = return ()
     lBP (BodyPart headers _ : xs) = do
-      logDebug (show headers)
+      logDebug (tshow headers)
       lBP xs
       return ()

@@ -1,6 +1,10 @@
 module HEyefi.SoapResponse where
 
-import Control.Arrow ((>>>))
+import           HEyefi.Prelude
+
+import           Control.Arrow ((>>>))
+import           Data.Text (Text)
+import qualified Data.Text as T
 import Text.XML.HXT.Core (
     runLA
   , root
@@ -25,9 +29,9 @@ soapMessage body =
     [ sattr "xmlns:SOAP-ENV" "http://schemas.xmlsoap.org/soap/envelope/" ]
     [ mkelem "SOAP-ENV:Body" [] body ]]
 
-soapResponse :: [LA n XmlTree] -> String
+soapResponse :: [LA n XmlTree] -> Text
 soapResponse body =
-  head (runLA (document >>> writeDocumentToString []) undefined)
+  T.pack (head (runLA (document >>> writeDocumentToString []) undefined))
   where
     document = root [] (soapMessage body)
 
@@ -38,7 +42,7 @@ uploadPhotoResponse =
     [ mkelem "success" [] [ txt "true" ] ]
   ]
 
-markLastPhotoInRollResponse :: String
+markLastPhotoInRollResponse :: Text
 markLastPhotoInRollResponse = soapResponse markLastPhotoInRollBody
 
 markLastPhotoInRollBody :: [LA n XmlTree]
@@ -48,7 +52,7 @@ markLastPhotoInRollBody =
       []
   ]
 
-getPhotoStatusResponse :: String
+getPhotoStatusResponse :: Text
 getPhotoStatusResponse = soapResponse getPhotoStatusBody
 
 getPhotoStatusBody :: [LA n XmlTree]

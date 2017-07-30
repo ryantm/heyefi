@@ -1,11 +1,10 @@
 module HEyefi.SoapResponseSpec where
 
-import Test.Hspec
-
 import HEyefi.SoapResponse
+import HEyefi.SpecPrelude
 
 spec :: Spec
 spec =
   describe "getPhotoStatusResponse"
     (it "should have GetPhotoStatusResponse element"
-     (getPhotoStatusResponse `shouldContain` "GetPhotoStatusResponse"))
+     (getPhotoStatusResponse `tshouldContain` "GetPhotoStatusResponse"))

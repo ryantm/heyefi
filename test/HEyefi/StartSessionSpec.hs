@@ -1,9 +1,8 @@
 module HEyefi.StartSessionSpec where
 
-import Test.Hspec
-
-import HEyefi.StartSession
 import HEyefi.Config (emptyConfig, insertCard, runWithConfig)
+import HEyefi.SpecPrelude
+import HEyefi.StartSession
 
 spec :: Spec
 spec =
@@ -18,5 +17,5 @@ spec =
            "34"
            "1356903384")
 
-         d `shouldContain` "<?xml version=\"1.0\" encoding=\"UTF-8\"?><SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\"><SOAP-ENV:Body><StartSessionResponse xmlns=\"http://localhost/api/soap/eyefilm\"><credential>7e8f22c00390b6f1ef7bafe7613cbdd2</credential><snonce>"
-         d `shouldContain` "</snonce><transfermode>34</transfermode><transfermodetimestamp>1356903384</transfermodetimestamp><upsyncallowed>true</upsyncallowed></StartSessionResponse></SOAP-ENV:Body></SOAP-ENV:Envelope>"))
+         d `tshouldContain` "<?xml version=\"1.0\" encoding=\"UTF-8\"?><SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\"><SOAP-ENV:Body><StartSessionResponse xmlns=\"http://localhost/api/soap/eyefilm\"><credential>7e8f22c00390b6f1ef7bafe7613cbdd2</credential><snonce>"
+         d `tshouldContain` "</snonce><transfermode>34</transfermode><transfermodetimestamp>1356903384</transfermodetimestamp><upsyncallowed>true</upsyncallowed></StartSessionResponse></SOAP-ENV:Body></SOAP-ENV:Envelope>"))

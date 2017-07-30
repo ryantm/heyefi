@@ -1,19 +1,17 @@
 module HEyefi.LogSpec where
 
-import HEyefi.Log
-import HEyefi.Config
-import HEyefi.Types
-
 import Data.Time.Clock (getCurrentTime)
 import Data.Time.Format (formatTime, defaultTimeLocale)
-import System.IO.Silently
-import Test.Hspec
+import HEyefi.Config
+import HEyefi.Log
+import HEyefi.Prelude
+import HEyefi.SpecPrelude
+import HEyefi.Types
 
-
-currentTime :: IO String
+currentTime :: IO Text
 currentTime = do
   t <- getCurrentTime
-  return (formatTime defaultTimeLocale "%FT%T" t)
+  return (pack (formatTime defaultTimeLocale "%FT%T" t))
 
 spec :: Spec
 spec = do
@@ -26,13 +24,13 @@ spec = do
         do
           let config = emptyConfig { logLevel = Debug }
           result <- capture_ (runWithConfig config (logDebug "hi"))
-          result `shouldContain` "Debug"
-          result `shouldContain` "hi"))
+          result `tshouldContain` "Debug"
+          result `tshouldContain` "hi"))
   describe "logInfo"
     (it "should output something" (
         do
           result <- capture_ (runWithEmptyConfig (logInfo "hi"))
           time <- currentTime
-          result `shouldContain` time
-          result `shouldContain` "Info"
-          result `shouldContain` "hi"))
+          result `tshouldContain` time
+          result `tshouldContain` "Info"
+          result `tshouldContain` "hi"))
