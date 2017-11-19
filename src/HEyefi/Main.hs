@@ -1,23 +1,24 @@
 module Main where
 
-import           HEyefi.App (app)
-import           HEyefi.CommandLineOptions (handleOptionsThenMaybe)
-import           HEyefi.Config (monitorConfig, newConfig, runWithConfig)
-import           HEyefi.Constant (port, configPath)
-import           HEyefi.Log (logInfoIO)
-import           HEyefi.Strings
-import           HEyefi.Types (SharedConfig)
+import HEyefi.App (app)
+import HEyefi.CommandLineOptions (handleOptionsThenMaybe)
+import HEyefi.Config (monitorConfig, newConfig, runWithConfig)
+import HEyefi.Constant (port, configPath)
+import HEyefi.Log (logInfoIO)
+import HEyefi.Prelude
+import HEyefi.Types (SharedConfig)
 
-import           Control.Concurrent (forkIO)
+import Control.Concurrent (forkIO)
 import           Control.Concurrent.STM (
     newTVar
   , atomically
   , writeTVar
   , TVar
   , readTVar )
-import           Control.Monad (forever, void)
-import           Network.Wai.Handler.Warp (run)
-import           System.Posix.Signals (installHandler, sigHUP, Handler( Catch ))
+import Control.Monad (forever, void)
+import Network.Wai.Handler.Warp (run)
+import System.IO
+import System.Posix.Signals (installHandler, sigHUP, Handler( Catch ))
 
 
 handleHup :: TVar (Maybe Int) -> IO ()
@@ -37,7 +38,7 @@ readAndMonitorSharedConfig wakeSig sharedConfig =
           (do
               c <- atomically (readTVar sharedConfig)
               runWithConfig c (
-                monitorConfig configPath sharedConfig wakeSig))))
+                monitorConfig (unpack configPath) sharedConfig wakeSig))))
 
 runHeyefi :: IO ()
 runHeyefi = do
@@ -46,8 +47,10 @@ runHeyefi = do
 
   readAndMonitorSharedConfig wakeSig sharedConfig
 
-  logInfoIO (listeningOnPort (show port))
+  logInfoIO (listeningOnPort (tshow port))
   run port (app sharedConfig)
 
 main :: IO ()
-main = handleOptionsThenMaybe runHeyefi
+main = do
+  hSetBuffering stdout LineBuffering
+  handleOptionsThenMaybe runHeyefi

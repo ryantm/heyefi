@@ -3,7 +3,7 @@
 -- see: https://github.com/sol/hpack
 
 name:                heyefi
-version:             1.1.0.0
+version:             2.0.0.0
 synopsis:            A server for Eye-Fi SD cards.
 description:         This server listens for Eye-Fi cards that want to upload files to a computer and stores them in an upload directory. It is meant to be run as a system daemon.
 category:            Network
@@ -28,7 +28,7 @@ executable heyefi
   hs-source-dirs:
       src
   default-extensions: OverloadedStrings ScopedTypeVariables GeneralizedNewtypeDeriving NoImplicitPrelude
-  ghc-options: -Wall -Werror
+  ghc-options: -Wall
   build-depends:
       base >=4.8 && <=5
     , stm
@@ -80,7 +80,7 @@ test-suite spec
       test
       src
   default-extensions: OverloadedStrings ScopedTypeVariables GeneralizedNewtypeDeriving NoImplicitPrelude
-  ghc-options: -Wall -Werror
+  ghc-options: -Wall
   build-depends:
       base >=4.8 && <=5
     , stm

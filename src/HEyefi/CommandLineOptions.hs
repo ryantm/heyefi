@@ -1,7 +1,6 @@
 module HEyefi.CommandLineOptions where
 
 import HEyefi.Prelude
-import HEyefi.Strings
 
 import Data.Monoid ((<>))
 import Data.Version (showVersion)
@@ -13,8 +12,8 @@ import Paths_heyefi (version)
 opts :: ParserInfo (Maybe ())
 opts = info (helper <*> parser)
        ( fullDesc
-         <> progDesc programDescription
-         <> header programHeaderDescription )
+         <> progDesc (unpack programDescription)
+         <> header (unpack programHeaderDescription) )
 
 parser :: Parser (Maybe ())
 parser =
