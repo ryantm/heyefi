@@ -1,35 +1,30 @@
 { mkDerivation, base, bytestring, case-insensitive, configurator
-, containers, directory, filepath, HandsomeSoup, hspec, hspec-wai
-, http-types, hxt, iso8601-time, MissingH, multipart
-, silently, stdenv, stm, tar, text, time, unix
-, unordered-containers, utf8-string, wai, wai-extra, warp, ghc, cabal-install
-, temporary, mtl, transformers, exceptions, random, hlint
-, optparse-applicative, packunused, hpc
+, directory, exceptions, filepath, HandsomeSoup, hspec, hspec-wai
+, http-types, hxt, iso8601-time, MissingH, mtl, multipart
+, optparse-applicative, random, silently, stdenv, stm, tar
+, temporary, text, time, transformers, unix, unordered-containers
+, utf8-string, wai, wai-extra, warp
 }:
-
 mkDerivation {
   pname = "heyefi";
-  version = "0.1.0.0";
+  version = "2.0.0.0";
   src = ./.;
   isLibrary = false;
   isExecutable = true;
-  buildTools = [ ghc cabal-install hlint packunused hpc ];
-  buildDepends = [
-    base bytestring case-insensitive configurator HandsomeSoup
-    http-types hxt iso8601-time MissingH multipart stm tar
-    text time unix unordered-containers utf8-string wai wai-extra warp
-    temporary filepath mtl transformers exceptions random
-    optparse-applicative
+  executableHaskellDepends = [
+    base bytestring case-insensitive configurator directory exceptions
+    filepath HandsomeSoup http-types hxt iso8601-time MissingH mtl
+    multipart optparse-applicative random stm tar temporary text time
+    transformers unix unordered-containers utf8-string wai warp
   ];
-  testDepends = [
-    base bytestring case-insensitive configurator containers directory
+  testHaskellDepends = [
+    base bytestring case-insensitive configurator directory exceptions
     filepath HandsomeSoup hspec hspec-wai http-types hxt iso8601-time
-    MissingH multipart silently stm tar text time unix
-    unordered-containers utf8-string wai wai-extra warp
-    temporary mtl transformers exceptions random
-    optparse-applicative
+    MissingH mtl multipart optparse-applicative random silently stm tar
+    temporary text time transformers unix unordered-containers
+    utf8-string wai wai-extra warp
   ];
   homepage = "https://github.com/ryantm/heyefi";
-  description = "A server for Eye-Fi SD cards written in Haskell. This project is not endorsed by Eye-Fi Inc.";
+  description = "A server for Eye-Fi SD cards";
   license = stdenv.lib.licenses.publicDomain;
 }

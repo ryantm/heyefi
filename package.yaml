@@ -1,5 +1,5 @@
 name: heyefi
-version: 2.0.0.0
+version: 2.0.0.1
 synopsis: A server for Eye-Fi SD cards.
 description: This server listens for Eye-Fi cards that want to upload files to a computer and stores them in an upload directory. It is meant to be run as a system daemon.
 homepage: https://github.com/ryantm/heyefi
