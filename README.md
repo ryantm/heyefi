@@ -53,6 +53,7 @@ nix-shell
 
 # Changelog
 
+2.0.0.2 2017-12-27 Fix nix build for GHC 8.2.2
 2.0.0.1 2017-12-06 Makes tests pass fixing nix build
 2.0.0.0 2017-11-18 Program output should be immediately written to stdout, instead of being buffered until the program finishes.
 1.1.0.0 2017-01-02 fixed build of version 0.13.0.0 of optparse-applicative, which removes Data.Monoid exports

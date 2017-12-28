@@ -1,9 +1,11 @@
--- This file has been generated from package.yaml by hpack version 0.18.1.
+-- This file has been generated from package.yaml by hpack version 0.21.2.
 --
 -- see: https://github.com/sol/hpack
+--
+-- hash: 504ff0c864ccb4be8289c6e55b3ce9ed911f54b3b2d70c4cb2867c8b932c1b0a
 
 name:                heyefi
-version:             2.0.0.1
+version:             2.0.0.2
 synopsis:            A server for Eye-Fi SD cards.
 description:         This server listens for Eye-Fi cards that want to upload files to a computer and stores them in an upload directory. It is meant to be run as a system daemon.
 category:            Network
@@ -24,39 +26,39 @@ source-repository head
   location: https://github.com/ryantm/heyefi
 
 executable heyefi
-  main-is: HEyefi/Main.hs
+  main-is: Main.hs
   hs-source-dirs:
       src
   default-extensions: OverloadedStrings ScopedTypeVariables GeneralizedNewtypeDeriving NoImplicitPrelude
   ghc-options: -Wall
   build-depends:
-      base >=4.8 && <=5
-    , stm
-    , unix
+      HandsomeSoup
     , MissingH
+    , base >=4.8 && <=5
     , bytestring
-    , utf8-string
-    , time
-    , iso8601-time
-    , warp
-    , wai
-    , http-types
-    , HandsomeSoup
-    , hxt
     , case-insensitive
-    , multipart
-    , tar
     , configurator
-    , unordered-containers
-    , text
-    , temporary
     , directory
-    , filepath
-    , mtl
-    , transformers
     , exceptions
-    , random
+    , filepath
+    , http-types
+    , hxt
+    , iso8601-time
+    , mtl
+    , multipart
     , optparse-applicative
+    , random
+    , stm
+    , tar
+    , temporary
+    , text
+    , time
+    , transformers
+    , unix
+    , unordered-containers
+    , utf8-string
+    , wai
+    , warp
   other-modules:
       HEyefi.App
       HEyefi.CommandLineOptions
@@ -71,6 +73,7 @@ executable heyefi
       HEyefi.Texts
       HEyefi.Types
       HEyefi.UploadPhoto
+      Paths_heyefi
   default-language: Haskell2010
 
 test-suite spec
@@ -82,37 +85,37 @@ test-suite spec
   default-extensions: OverloadedStrings ScopedTypeVariables GeneralizedNewtypeDeriving NoImplicitPrelude
   ghc-options: -Wall
   build-depends:
-      base >=4.8 && <=5
-    , stm
-    , unix
+      HandsomeSoup
     , MissingH
+    , base >=4.8 && <=5
     , bytestring
-    , utf8-string
-    , time
-    , iso8601-time
-    , warp
-    , wai
-    , http-types
-    , HandsomeSoup
-    , hxt
     , case-insensitive
-    , multipart
-    , tar
     , configurator
-    , unordered-containers
-    , text
-    , temporary
     , directory
-    , filepath
-    , mtl
-    , transformers
     , exceptions
-    , random
-    , optparse-applicative
+    , filepath
     , hspec
     , hspec-wai
-    , wai-extra
+    , http-types
+    , hxt
+    , iso8601-time
+    , mtl
+    , multipart
+    , optparse-applicative
+    , random
     , silently
+    , stm
+    , tar
+    , temporary
+    , text
+    , time
+    , transformers
+    , unix
+    , unordered-containers
+    , utf8-string
+    , wai
+    , wai-extra
+    , warp
   other-modules:
       HEyefi.AppSpec
       HEyefi.ConfigSpec
@@ -128,7 +131,6 @@ test-suite spec
       HEyefi.Constant
       HEyefi.Hex
       HEyefi.Log
-      HEyefi.Main
       HEyefi.Prelude
       HEyefi.Soap
       HEyefi.SoapResponse
@@ -136,4 +138,6 @@ test-suite spec
       HEyefi.Texts
       HEyefi.Types
       HEyefi.UploadPhoto
+      Main
+      Paths_heyefi
   default-language: Haskell2010
